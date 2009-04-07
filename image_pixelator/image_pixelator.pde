@@ -1,6 +1,10 @@
+/** Mar 2009
+ * Display each line of a given image as a series of colored boxes (pixels) spread
+ * randomly over the canvas.
+**/
 PImage cur;
-int x, y, xstep, ystep, big_step;
-int step = 2;
+int x, y, xstep, ystep, c_xstep, c_ystep;
+int step = 2;       
 int c_step = 40;
 int count = 0;
 int counter = 1;
@@ -9,17 +13,26 @@ color c;
 PFont fon;
 int[] rmap;
 
+
 void setup() {
-  size(640, 480);
+  size(1600, 1200);
   // 640 x 480 image
   cur = loadImage("3175092697_2f98d3c1f7_b.jpg");
   fon = loadFont("DejaVuSans-10.vlw");
   textFont(fon, 10);
   //noLoop();
   noStroke();
-  frameRate(20);
-  xstep = width / 20;
-  ystep = height / 32;
+  frameRate(10);
+  // Image split
+  xstep = cur.width / 20; 
+  ystep = cur.height / 32;
+  // Canvas split
+  c_xstep = width / 20;
+  c_ystep = height / 32;
+  
+  // Row map, an array of integers representing points on a horizontal
+  // line across the image. This is used to choose pixels to sample during
+  // pixel drawing.
   rmap = new int[width];
   for (int i = 0; i < rmap.length; i++) rmap[i] = i;
   shuffle(rmap);
@@ -38,8 +51,6 @@ void shuffle(int[] c){
 
 void draw() {
   boxScan();
-  //lineScan();
-  //boxify();
 
   // Show current scanline when spacebar is pressed
   if (keys[32]) {
@@ -48,30 +59,31 @@ void draw() {
     line(0, count, width, count);
     noStroke();
   }
+  if (keys[97]) {
+    // halt, screen grab, quit
+    noLoop();
+    saveFrame("grab.jpg"); 
+    exit();
+  }
 }
 
 int b = 0;
 void boxScan() {
   // Loop through every `c_step` pixel.
   b = 0;
-  // get line
-  if (count == height || count < 0) {
-    counter = count < 0 ? 1 : -1;
-    count = count < 0 ? 1 : height - 1;
-  }  
-  count += counter;
+
  
   // draw
   x = 0;
-  while (x < cur.width) {
+  while (x < width) {
     y = 0;
-    while (y < cur.height) {
+    while (y < height) {
       fill(cur.get(rmap[b], count));
-      rect(x, y, xstep, ystep);
-       y+= ystep;
-       b += 1;
+      rect(x, y, c_xstep, c_ystep);
+      y+= c_ystep;
+      b += 1;
     }
-    x+=xstep;
+    x+=c_xstep;
   }
   if (count == height || count < 0) {
     counter = count < 0 ? 1 : -1;
@@ -89,39 +101,12 @@ void t(color c, int m, int x, int y){
   text(m, x, y);
 }
   
-void lineScan() {
-  // Horizontal Line Scanning
-  if (count == height || count < 0) {
-    counter = count < 0 ? 1 : -1;
-    count = count < 0 ? 1 : height - 1;
-  }  
-  count += counter;
-  
-  for (int p = 0; p < width; p++) {
-    stroke(cur.get(p, count));
-    line(p,0,p,height);
-  }
-}
-
-void boxify() {
-  // Pick n random piexels and draw them on screen. 
-  // Vary alpha by mouseY location.
-  int n = 50;
-  float alph = map(mouseY, 0, height, 0, 255); 
-  for (int i = 0; i < n; i++) { 
-    x = int(random(cur.width));
-    y = int(random(cur.height));
-    c = cur.get(x, y);
-    fill(c, alph);
-    rect(x, y, 10, 10);  
-  }
-}
-
 void keyPressed() {
   if (key > 255) return;
   keys[key] = true;
+  t(color(200,200,200), key, 10, 10);
 }
-void keyReleased(){
+void keyReleased() {
   if (key > 255) return;
   keys[key] = false; 
 }
