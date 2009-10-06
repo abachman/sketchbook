@@ -4,7 +4,7 @@ color c;
 Magnifier m;
 
 void setup() {
-  size(640, 480);
+  size(640, 480, P2D);
   cur = loadImage("3175092697_2f98d3c1f7_b.jpg");
   //noLoop();
   noStroke();

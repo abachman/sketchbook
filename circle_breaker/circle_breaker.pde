@@ -1,7 +1,7 @@
 import java.util.List;
 
 // int DOTCOL = 255;
-int MAXDOTS = 80;
+int MAXDOTS = 220;
 float[] SPEED = new float[] {.5, 3};
 Dot[] dots = new Dot[MAXDOTS];
 float MAXEXPL = 60;
@@ -11,8 +11,8 @@ Explosion expl;
 float bboxx, bboxy, bboxh, bboxw;
 
 void setup() {
-  size(400, 400);
-  frameRate(30);
+  size(800, 600, P2D);
+  frameRate(24);
   //smooth();
   for (int f=0;f<MAXDOTS;f++) {
     dots[f] = new Dot();
@@ -43,6 +43,7 @@ void draw() {
     text("Max propagation: " + Float.toString((MAXEXPL-MINEXPL)/SHRINK), width/2, height/2 + 20);
     fill(0, 10);
     rect(0,0,width,height);
+    noLoop();
   }
   else 
     background(0);
@@ -171,7 +172,7 @@ class Explosion {
     noStroke();
     noFill();
     if (drawable) { 
-      fill(200, 30);
+      fill(200, 200, 255, 30);
       ellipse(x,y,rad*2,rad*2);  
     }
   }
@@ -209,7 +210,7 @@ class Dot {
     return true;
   }  
   void drawme() {
-    fill(200, 30);
+    fill(200, 50);
     noStroke();
     ellipse(x,y,rad*2,rad*2);
   }

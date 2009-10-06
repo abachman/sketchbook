@@ -6,7 +6,7 @@
  
 //int barWidth = 5;
 int side = 40;
-int edge = 10; // 4 squares per side
+int edge = 20; // 4 squares per side
 int h = side*edge, w = side*edge; 
 int squarecount = edge * edge;
 int[] hue = new int[200];
@@ -106,7 +106,7 @@ SquareList squares = new SquareList();
 
 void setup() 
 {
-  size(side*edge, side*edge);
+  size(side*edge, side*edge, P2D);
   colorMode(RGB, 256);  
   noStroke();
   ellipseMode(CENTER);
