@@ -4,7 +4,7 @@ float DIVERGE = 0.3;// branch split
 boolean MOUSE_DIVERGENCE = true;
 
 void setup() {
-  size(1000, 700, P2D);
+  size(600, 600, P2D);
   background(0);
   noStroke();
   smooth();
