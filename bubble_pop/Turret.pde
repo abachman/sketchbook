@@ -22,7 +22,7 @@ class Turret extends Unit {
       return;
     
     float mindist = 10000, curdist;
-    Unit targ = null;
+    Dot targ = null;
     for (int d=0; d <dots.length; d++) {
       if ((dots[d]!=null && dots[d].drawable)) {
         curdist = dist(x,y,dots[d].x,dots[d].y);
