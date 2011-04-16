@@ -1,6 +1,6 @@
-HEIGHT = 1600
-WIDTH  = 1800
-SCALING = 20.0
+HEIGHT = 600
+WIDTH  = 1280 / 2
+SCALING = 10.0
 
 DXY = [[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]]
 # a 400 by 400 2D array
@@ -14,6 +14,7 @@ end
 
 def step world
   _interesting_neighbors = []
+
   # live neighbors
   _next_world = world.inject([]) {|next_world, (x, y)|
     dead_neighbors = neighborhood(x, y) - world
@@ -124,22 +125,22 @@ def draw
   @world = step(@world)
 
   # delete a random spot every 2 steps
-  if @step % 20 == 0
-    @world.pop(random(@world.length))
-  end
+  # if @step % 20 == 0
+  #   @world.pop(random(@world.length))
+  # end
 
-  if @step % 3 == 0
-    launch random(width), random(height)
-  end
+  # if @step % 1000 == 0
+  #   launch random(width), random(height)
+  # end
 
-  if @step % 100 == 0
-    puts 'closer...'
-  end
+  # if @step % 100 == 0
+  #   puts 'closer...'
+  # end
 
-  if @step > 300
-    save_frame("background.png")
-    exit
-  end
+  # if @step > 300
+  #   save_frame("background.png")
+  #   exit
+  # end
 end
 
 def rotate_pattern p
@@ -157,7 +158,7 @@ def rotate_pattern p
 end
 
 def launch x, y
-  p = rotate_pattern(patterns[:glider])
+  p = rotate_pattern(patterns[:acorn])
   x_off = map(x, 0, width, 0, width / @scaling)
   y_off = map(y, 0, height, 0, height / @scaling)
   place_pattern(p, x_off, y_off).inject(@world, &:<<)
