@@ -16,10 +16,11 @@
 int BAR_WIDTH = 3; // width of each bar
 int STEP = 0;      // space between bars
 int IMAGEX = 2200; // width of image (should be real big for use as background, like 1800+)
-boolean ONEPASS = true; // set this to true to generate rectangles one time, 
+boolean ONEPASS = false; // set this to true to generate rectangles one time, 
                         // save a pic, and quit.
 int BAR_MIN = 50;  // how short can a bar be?                         
 boolean DOUBLE_BARS = true; // draw two in a stack?
+float FLOAT_MIN = 2.0;
 
 class Rectangle {
   int x;
