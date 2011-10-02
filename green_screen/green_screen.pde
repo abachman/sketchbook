@@ -1,3 +1,5 @@
+import processing.video.*;
+
 /**
  * Frame Differencing
  * by Golan Levin.
@@ -8,7 +10,7 @@
  */
 
 
-import codeanticode.gsvideo.*;
+// import codeanticode.gsvideo.*;
 
 int numPixels;
 int[] referenceFrame;
@@ -16,12 +18,14 @@ int threshold = 120;
 boolean LOADED = false;
 
 PImage bg;
-GSCapture video;
+Capture video;
+//GSCapture video;
 
 void setup() {
   size(640, 480); // Change size to 320 x 240 if too slow at 640 x 480
   // Uses the default video input, see the reference if this causes an error
-  video = new GSCapture(this, width, height, "/dev/video0", 24);
+  // video = new GSCapture(this, width, height, "/dev/video0", 24);
+  video = new Capture(this, width, height, 24);
   numPixels = video.width * video.height;
   // Create an array to store the previously captured frame
   referenceFrame = new int[numPixels];
@@ -50,7 +54,8 @@ void draw() {
     }
 
     // background(0);
-    // image(bg, 0, 0);
+    image(bg, 0, 0);
+    
     int movementSum = 0; // Amount of movement in the frame
     for (int i = 0; i < numPixels; i++) { // For each pixel in the video frame...
       color currColor = video.pixels[i];
@@ -82,4 +87,3 @@ void draw() {
     updatePixels();
   }
 }
-
