@@ -1,22 +1,66 @@
 // Maybe maze drawing offers a clue?
 
-int w, h, c, r,
-    count = 0, 
+int w, h, c, r, clr,
+    count = 0,
     cell_height, cell_width;
+
+// cell drawing types
+final int Z=0, EW=1, NS=2, EW_NS=3, NS_EW=4;
+
+final int[][] WORD = {
+  {Z,EW_NS,EW_NS,EW_NS,Z,EW_NS,Z,Z    ,Z    ,EW_NS,Z,Z    ,Z,EW_NS,Z    ,EW_NS,Z    ,EW_NS,Z,Z    ,Z}    ,
+  {Z,EW_NS,EW_NS,EW_NS,Z,EW_NS,Z,EW_NS,EW_NS,EW_NS,Z,EW_NS,Z,EW_NS,Z    ,EW_NS,Z    ,EW_NS,Z,EW_NS,EW_NS},
+  {Z,EW_NS,Z    ,EW_NS,Z,EW_NS,Z,Z    ,Z    ,EW_NS,Z,EW_NS,Z,EW_NS,Z    ,EW_NS,Z    ,EW_NS,Z,Z    ,Z}    ,
+  {Z,EW_NS,Z    ,EW_NS,Z,EW_NS,Z,EW_NS,EW_NS,EW_NS,Z,Z    ,Z,EW_NS,Z    ,EW_NS,Z    ,EW_NS,Z,EW_NS,EW_NS},
+  {Z,Z    ,Z    ,Z    ,Z,EW_NS,Z,Z    ,Z    ,EW_NS,Z,EW_NS,Z,EW_NS,EW_NS,Z    ,EW_NS,EW_NS,Z,Z    ,Z}
+};
 
 final int step  = 16,
           steps = 30;
 
 class World {
   HashMap cells;
-  World(int w, int h, int step) {
+  int h, w, step;
+
+  // world w and h are in grid steps, step is pixels.
+  World(int _w, int _h, int _step) {
+    step = _step;
+    w = _w; h = _h;
+
     // gridworld
     cells = new HashMap(w * h);
 
+    Cell c;
     for (int y=0; y <= h; y++) {
       for (int x=0; x <= w; x++) {
-        Cell c = new Cell(x, y, step);
+        c = new Cell(x, y, step);
         cells.put(c.id, c);
+      }
+    }
+  }
+
+  // pixel location of cell at grid step
+  int[] cell_at(int x, int y) {
+    return new int[] {x * step, y * step};
+  }
+
+  String cell_id(int x, int y) {
+    int[] point = cell_at(x, y);
+    int _x = point[0],
+        _y = point[1];
+
+    return String.format("%s,%s", _x, _y);
+  }
+
+  // draw word starting at (x, y)
+  void write(int x, int y, int[][] word) {
+    Cell c;
+    for (int row=0; row < word.length; row++) {
+      for (int col=0; col < word[0].length; col++) {
+        if (y + row < h && x + col < w) {
+          c = (Cell) cells.get( cell_id(col + x, row + y) );
+          c.line_type = word[row][col];
+        }
       }
     }
   }
@@ -26,35 +70,45 @@ class World {
 
     while (i.hasNext()) {
       Cell c = (Cell)((Map.Entry)i.next()).getValue();
-      c.line_type = (int)random(2) + 2;
       c.draw();
     }
   }
 }
 
-final int EW=0, NS=1, EW_NS=2, NS_EW=3;
-
-// a cell knows its neighbors
-class Cell { 
-  int x, y, grid_x, grid_y, step, line_type; 
+class Cell {
+  int x, y, grid_x, grid_y, step, line_type;
   String id;
   boolean n, s, e, w;
   World myworld;
 
+  // set default line type
   Cell(int _x, int _y, int _s) {
-    // cell coords in grid
-    grid_x = _x; grid_y = _y; 
+    line_type = EW_NS;
 
+    // dupe
+    grid_x = _x; grid_y = _y;
     step = _s;
-
     x = grid_x * step;
     y = grid_y * step;
-
     id = String.format("%s,%s", x, y);
   }
 
-  void draw() { 
+  // accept line type as arg
+  Cell(int _x, int _y, int _s, int _line_type) {
+    line_type = _line_type;
+
+    // dupe
+    grid_x = _x; grid_y = _y;
+    step = _s;
+    x = grid_x * step;
+    y = grid_y * step;
+    id = String.format("%s,%s", x, y);
+  }
+
+  void draw() {
     switch (line_type) {
+      case Z:
+        break;
       case EW:
         hstripe(x, y);
         break;
@@ -76,11 +130,12 @@ class Cell {
 World world;
 
 void setup() {
+  colorMode(HSB, 255);
   size(step * steps, step * steps);
   strokeCap(SQUARE);
   w = width; h = height;
-  background(128);
   c = 0; r = -(step / 2);
+  clr = 0;
 
   cell_width = w / step;
   cell_height = h / step;
@@ -88,16 +143,18 @@ void setup() {
   // initialize world
   world = new World(cell_width, cell_height, step);
 
-  // initialize cells
+  // write something
+  world.write(3, 3, WORD);
 }
 
 boolean alt_r=false, alt_c=true;
 void draw() {
-  // cover(0);
-  
+  background(color(clr,255,255));
+
   world.draw();
 
-  noLoop();
+  clr = (clr + 1) % 255;
+  // noLoop();
 }
 
 void keyPressed() {
@@ -109,20 +166,20 @@ void cover(int r) {
   c = 0;
   while (c < w + step) {
     if (alt_c) {
-      vstripe(c, r); 
-      hstripe(c, r); 
-    } else { 
-      hstripe(c, r); 
-      vstripe(c, r); 
+      vstripe(c, r);
+      hstripe(c, r);
+    } else {
+      hstripe(c, r);
+      vstripe(c, r);
     }
 
     c += step;
     alt_c = !alt_c;
   }
-  alt_c = alt_r; 
+  alt_c = alt_r;
   alt_r = !alt_r;
 
-  if (r < h + step) { 
+  if (r < h + step) {
     cover(r + step);
   }
 }
