@@ -1,10 +1,12 @@
+import processing.pdf.*;
+
 // Maybe maze drawing offers a clue?
 
 int w, h, c, r, clr,
     count = 0,
     cell_height, cell_width;
 
-final int STEP  = 48, // STEP must be a multiple of 16
+final int STEP  = 64, // STEP must be a multiple of 16
           STEPS = 20;
 
 final int VERT = 0, HORIZ = 1;
@@ -462,7 +464,8 @@ int[] steps = pattern_a;
 
 void setup() {
   colorMode(HSB, 255);
-  size(STEP * STEPS, STEP * STEPS);
+  size(STEP * STEPS, STEP * STEPS, PDF, "knot.pdf");
+
   strokeCap(SQUARE);
   w = width; h = height;
   c = 0; r = -(STEP / 2);
@@ -476,18 +479,23 @@ void setup() {
   knot  = new Line(world);
   living = true;
 
+  noLoop();
+
   // frameRate(40);
   // frameRate(3);
 }
 
 void draw() {
-  background(51);
+  background(255);
 
-  if (living && automatic) {
+  while (living && automatic) {
     living = make_a_knot();
   }
 
   knot.draw();
+
+  // endRecord();
+  exit();
 }
 
 void keyPressed() {
@@ -495,6 +503,7 @@ void keyPressed() {
     world.clear();
     knot.clear();
     living = true;
+    beginRecord(PDF, "knot.pdf");
   } else if (key == 'a') {
     automatic = !automatic;
   }
