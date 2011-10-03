@@ -4,8 +4,8 @@ int w, h, c, r, clr,
     count = 0,
     cell_height, cell_width;
 
-final int STEP  = 32, // STEP must be a multiple of 16
-          STEPS = 12;
+final int STEP  = 16, // STEP must be a multiple of 16
+          STEPS = 60;
 
 final int VERT = 0, HORIZ = 1;
 
@@ -52,7 +52,6 @@ class Line {
     add_range(l.grid_x, l.grid_y, gx, gy);
   }
 
-  // FIXME
   void add_range(int gx1, int gy1, int gx2, int gy2) {
     Cell prev_cell = null, next_cell;
     int dx, dy, nx, ny, next_point, next_dir, prev_dir, travel;
@@ -84,9 +83,9 @@ class Line {
 
       next_cell = world.get_cell_at(nx, ny);
 
-      // don't run parallel
+      // don't run parallel or cross corners
       if (next_cell != null) {
-        if (next_cell.parallel_to(next_dir)) return;
+        if (next_cell.is_corner() || next_cell.parallel_to(next_dir)) return;
         else {
           next_cell.setOver(next_cross(travel));
         }
@@ -118,6 +117,64 @@ class Line {
   }
 
   void clear() { points.clear(); }
+
+  void draw() {
+    Iterator i = points.iterator();  // Get an iterator
+
+    while (i.hasNext()) {
+      Cell c = (Cell)i.next();
+      c.draw();
+    }
+  }
+
+  // is there an open cell that we can move to?
+  boolean move_possible(int dir) {
+    return possible_moves(dir).size() > 0;
+  }
+
+  // can move to any empty cell that is not past a corner
+  ArrayList possible_moves(int dir) {
+    Cell l = last(), check;
+    ArrayList pts = new ArrayList();
+
+    int dx=0,dy=0,
+        gx = l.grid_x,
+        gy = l.grid_y;
+
+    switch(dir) {
+      case NORTH:
+        dx = 0;
+        dy = -1;
+        break;
+      case SOUTH:
+        dx = 0;
+        dy = 1;
+        break;
+      case EAST:
+        dx = 1;
+        dy = 0;
+        break;
+      case WEST:
+        dx = -1;
+        dy = 0;
+        break;
+    }
+
+    while (gx < STEPS && gx >= 0 && gy < STEPS && gy >= 0) {
+      if ((check = world.get_cell_at(gx, gy)) != null) {
+        if (check.is_corner()) {
+          return pts;
+        }
+      } else {
+        pts.add(new int[] {gx, gy});
+      }
+
+      gx += dx;
+      gy += dy;
+    }
+
+    return pts;
+  }
 }
 
 class World {
@@ -156,15 +213,6 @@ class World {
     return  _x + "," + _y;
   }
 
-  void draw() {
-    Iterator i = cells.values().iterator();  // Get an iterator
-
-    while (i.hasNext()) {
-      Cell c = (Cell)i.next();
-      c.draw();
-    }
-  }
-
   void clear() { cells.clear(); }
 }
 
@@ -175,6 +223,7 @@ final int NORTH=1, N=1,
           SOUTH=2, S=2,
           EAST =4, E=4,
           WEST =8, W=8;
+final int NW = N | W, NE = N | E, SW = S | W, SE = S | E;
 /*
  *  int dir = WEST;
  *  dir |= NORTH;
@@ -258,6 +307,13 @@ class Cell {
     midy = y + hstep;
   }
 
+  boolean is_corner() {
+    return ((dir & NW) == NW) ||
+           ((dir & NE) == NE) ||
+           ((dir & SW) == SW) ||
+           ((dir & SE) == SE);
+  }
+
   void draw() {
     if (over == NEITHER) {
       draw_center();
@@ -333,7 +389,6 @@ class Cell {
 
   // does cell already have an exit facing this direction?
   boolean parallel_to(int dir_flag) {
-    println("does dir " + dir + " contain " + dir_flag);
     return (this.dir & dir_flag) == dir_flag;
   }
 
@@ -354,6 +409,7 @@ class Cell {
 
 World world;
 Line  knot;
+boolean living;
 
 void setup() {
   colorMode(HSB, 255);
@@ -369,26 +425,26 @@ void setup() {
   // initialize world
   world = new World(cell_width, cell_height, STEP);
   knot  = new Line(world);
+  living = true;
 
-  frameRate(4);
+  // frameRate(40);
 }
 
 void draw() {
   background(51);
 
-  world.draw();
+  if (living) {
+    living = make_a_knot();
+  }
 
-  int gx = (mouseX / STEP),
-      gy = (mouseY / STEP);
-  noStroke();
-  fill(color(100, 255, 128, 0.2));
-  rect(gx * STEP + 2, gy * STEP + 2, STEP - 2, STEP - 2);
+  knot.draw();
 }
 
 void keyPressed() {
   if (key == ' ') {
     world.clear();
     knot.clear();
+    living = true;
   }
 }
 
@@ -397,7 +453,40 @@ void mouseClicked() {
   int gx = (mouseX / STEP),
       gy = (mouseY / STEP);
 
-  // try to add cell
+  // try to add cells
   knot.add(gx, gy);
+}
+
+// RANDOM KNOTTING
+int current_step=0;
+final int[] steps = {NORTH, EAST, SOUTH, WEST};
+
+boolean make_a_knot() {
+  int nx, ny, cur_dir = steps[current_step];
+  Cell last_cell = knot.last();
+
+  if (last_cell == null) {
+    // just place a point
+    knot.add(int(random(width / STEP)), int(random(height / STEP)));
+  } else  {
+    int tries = 0;
+    boolean possible = false;
+    ArrayList possibles = knot.possible_moves(cur_dir);
+    while (possibles.size() == 0 && tries < steps.length) {
+      current_step = (current_step + 1) % steps.length;
+      cur_dir = steps[current_step];
+      tries++;
+      possibles = knot.possible_moves(cur_dir);
+    }
+    if (possibles.size() > 0) {
+      int[] point = (int[]) possibles.get( int(random(possibles.size())) );
+      knot.add(point[0], point[1]);
+    } else {
+      return false;
+    }
+  }
+
+  current_step = (current_step + 1) % steps.length;
+  return true;
 }
 
