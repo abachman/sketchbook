@@ -2,9 +2,12 @@
 
 Knot theory is complex: [http://en.wikipedia.org/wiki/Knot_theory](http://en.wikipedia.org/wiki/Knot_theory)
 
-Weave wants to draw knots [according to the rules](http://en.wikipedia.org/wiki/Knots_and_graphs#Draw_nice_knots),
-but can't quite do it yet.
+Weave draws knots [according to the rules](http://en.wikipedia.org/wiki/Knots_and_graphs#Draw_nice_knots),
+so sometimes all the crossings will toggle when the sketch is running.
 
-As of v7:
+* press `spacebar` to reset the screen.
+* press `a` to toggle automatic drawing.
 
-![screenshot](http://dl.dropbox.com/u/3147390/pics/2011-10-03-13-08-12_v7.png)
+As of v8:
+
+![screenshot](http://dl.dropbox.com/u/3147390/pics/2011-10-03-16-36-07_v8-upload.png)

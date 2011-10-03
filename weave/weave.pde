@@ -452,7 +452,7 @@ class Cell {
 
 World world;
 Line  knot;
-boolean living, automatic = false;
+boolean living, automatic = true;
 
 // Random knotting patterns
 final int[] pattern_a = {NORTH, EAST, SOUTH, WEST};
@@ -477,7 +477,7 @@ void setup() {
   living = true;
 
   // frameRate(40);
-  frameRate(3);
+  // frameRate(3);
 }
 
 void draw() {
