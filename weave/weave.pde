@@ -411,6 +411,12 @@ World world;
 Line  knot;
 boolean living;
 
+// Random knotting patterns
+final int[] pattern_a = {NORTH, EAST, SOUTH, WEST};
+final int[] pattern_b = {NORTH, EAST, NORTH, EAST, SOUTH, WEST, SOUTH, WEST};
+
+int[] steps = pattern_b;
+
 void setup() {
   colorMode(HSB, 255);
   size(STEP * STEPS, STEP * STEPS);
@@ -459,7 +465,6 @@ void mouseClicked() {
 
 // RANDOM KNOTTING
 int current_step=0;
-final int[] steps = {NORTH, EAST, SOUTH, WEST};
 
 boolean make_a_knot() {
   int nx, ny, cur_dir = steps[current_step];
