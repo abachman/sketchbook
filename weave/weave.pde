@@ -4,13 +4,17 @@ int w, h, c, r, clr,
     count = 0,
     cell_height, cell_width;
 
-final int STEP  = 32, // STEP must be a multiple of 8
+final int STEP  = 32, // STEP must be a multiple of 16
           STEPS = 12;
+
+final int VERT = 0, HORIZ = 1;
 
 // lines are what knots are made of
 class Line {
   ArrayList points;
   World w;
+
+  int crosses=0;
 
   Line (World _w) {
     points = new ArrayList();
@@ -30,8 +34,6 @@ class Line {
   void add(int gx, int gy) {
     Cell c, l;
 
-    println("adding...");
-
     // first cell
     if (points.size() == 0) {
       c = w.place_cell_at(gx, gy);
@@ -39,67 +41,83 @@ class Line {
       return;
     }
 
-    // target can't be on a line
-    if (w.get_cell_at(gx, gy) != null) return;
-
     l = last();
 
     // can only add points in line with last point
     if (!l.in_line_with(gx, gy)) return;
 
-    // can't run parallel to another line
-    // hmmm...
+    // don't plop on existing cells
+    if (world.get_cell_at(gx, gy) != null) return;
 
     add_range(l.grid_x, l.grid_y, gx, gy);
   }
 
+  // FIXME
   void add_range(int gx1, int gy1, int gx2, int gy2) {
-    Cell c = null, prev;
-    int p, next;
-    if (gx1 == gx2) { // vert
-      p = gy1 > gy2 ? -1 : 1;
-      for (int ny=1; ny <= abs(gy1 - gy2); ny++) {
-        next = gy1 + (ny * p);
+    Cell prev_cell = null, next_cell;
+    int dx, dy, nx, ny, next_point, next_dir, prev_dir, travel;
 
-        // DON'T RUN PARALLEL
-        if (world.get_cell_at(gx1, next) != null) return;
-        else {
-          c = world.place_cell_at(gx1, next);
-          prev = last();
+    dx = gx1 > gx2 ? -1 : 1;
+    dy = gy1 > gy2 ? -1 : 1;
 
-          if (p == 1) { // downwards
-            prev.dir |= SOUTH;
-            c.dir    |= NORTH;
-          } else {      // upwards
-            prev.dir |= NORTH;
-            c.dir    |= SOUTH;
-          }
-          points.add(c);
-        }
+    if (gx1 == gx2) dx = 0;
+    if (gy1 == gy2) dy = 0;
+
+    // starting cell is offset by one
+    nx = gx1 + dx;
+    ny = gy1 + dy;
+
+    travel = dx == 0 ? VERT : HORIZ;
+
+    // draw cells in the appropriate direction
+    while (nx != gx2 + dx || ny != gy2 + dy) {
+      if (prev_cell == null) prev_cell = last();
+
+      // the direction out from prev to next cell.
+      if (travel == HORIZ) {
+        next_dir = dx == 1 ? EAST : WEST;
+        prev_dir = dx == 1 ? WEST : EAST;
+      } else {
+        next_dir = dy == 1 ? SOUTH : NORTH;
+        prev_dir = dy == 1 ? NORTH : SOUTH;
       }
-    } else { // vert
-      p = gx1 > gx2 ? -1 : 1;
-      for (int nx=1; nx <= abs(gx1 - gx2); nx++) {
-        next = gx1 + (nx * p);
 
-        // DON'T RUN PARALLEL
-        if (world.get_cell_at(next, gy1) != null) return;
+      next_cell = world.get_cell_at(nx, ny);
+
+      // don't run parallel
+      if (next_cell != null) {
+        if (next_cell.parallel_to(next_dir)) return;
         else {
-          c = world.place_cell_at(next, gy1);
-          prev = last();
-
-          if (p == 1) { // right
-            prev.dir |= EAST;
-            c.dir    |= WEST;
-          } else {      // left
-            prev.dir |= WEST;
-            c.dir    |= EAST;
-          }
-          points.add(c);
+          next_cell.setOver(next_cross(travel));
         }
+      } else {
+        next_cell = world.place_cell_at(nx, ny);
       }
+
+      prev_cell.dir |= next_dir;
+      next_cell.dir |= prev_dir;
+
+      points.add(next_cell);
+
+      prev_cell = next_cell;
+      nx += dx;
+      ny += dy;
     }
   }
+
+  // returns EW_OVER or NS_OVER
+  int next_cross(int travel) {
+    crosses++;
+    if (crosses % 2 == 0) {
+      // this line goes under
+      return travel == HORIZ ? NS_OVER : EW_OVER;
+    } else {
+      // this line goes over
+      return travel == HORIZ ? EW_OVER : NS_OVER;
+    }
+  }
+
+  void clear() { points.clear(); }
 }
 
 class World {
@@ -111,15 +129,8 @@ class World {
     step = _step;
     w = _w; h = _h;
 
-    // gridworld
+    // empty gridworld
     cells = new HashMap(w * h);
-
-    // populate
-    // for (int y=0; y <= h; y++) {
-    //   for (int x=0; x <= w; x++) {
-    //     place_cell_at(x, y);
-    //   }
-    // }
   }
 
   Cell place_cell_at(int gx, int gy) {
@@ -153,10 +164,12 @@ class World {
       c.draw();
     }
   }
+
+  void clear() { cells.clear(); }
 }
 
 // cell drawing types
-final int EW_OVER=0, NS_OVER=1;
+final int NEITHER=0, EW_OVER=1, NS_OVER=2;
 // cell drawing directions
 final int NORTH=1, N=1,
           SOUTH=2, S=2,
@@ -173,7 +186,8 @@ final int NORTH=1, N=1,
  */
 
 class Cell {
-  int x, y, midx, midy, grid_x, grid_y, step, hstep, line_type;
+  int x, y, midx, midy, grid_x, grid_y,
+      step, hstep, over;
 
   // line widths
   int border, line,
@@ -185,12 +199,11 @@ class Cell {
   String id;
   int dir;
 
-  boolean alive;
   World myworld;
 
   // set default line type
   Cell(int _x, int _y, int _s) {
-    alive = true;
+    over = NEITHER;
 
     // line_type = EW_NS;
     dir = 0;
@@ -245,14 +258,18 @@ class Cell {
     midy = y + hstep;
   }
 
-  void toggle() {
-    alive = !alive;
-  }
-
   void draw() {
-    if (alive) {
+    if (over == NEITHER) {
       draw_center();
       draw_segments();
+    } else {
+      if (over == EW_OVER) {
+        vstripe();
+        hstripe();
+      } else {
+        hstripe();
+        vstripe();
+      }
     }
   }
 
@@ -284,6 +301,19 @@ class Cell {
     }
   }
 
+  // simple crossings
+  void vstripe(){
+    int hx = x + hstep;
+    l_border(hx, y, hx, y + step);
+    l_line(  hx, y, hx, y + step);
+  }
+
+  void hstripe() {
+    int hy = y + hstep;
+    l_border(x, hy, x + step, hy);
+    l_line(  x, hy, x + step, hy);
+  }
+
   boolean northy() { return (dir & N) == N; }
   boolean southy() { return (dir & S) == S; }
   boolean easty()  { return (dir & E) == E; }
@@ -298,8 +328,27 @@ class Cell {
   }
 
   boolean in_line_with(int ogx, int ogy) {
-    println("comparing " + ogx + " to " + grid_x + " and " + ogy + " to " + grid_y);
     return (ogx == grid_x || ogy == grid_y);
+  }
+
+  // does cell already have an exit facing this direction?
+  boolean parallel_to(int dir_flag) {
+    println("does dir " + dir + " contain " + dir_flag);
+    return (this.dir & dir_flag) == dir_flag;
+  }
+
+  int exits() {
+    int total = 0;
+    if (northy()) total++;
+    if (northy()) total++;
+    if (northy()) total++;
+    if (northy()) total++;
+    return total;
+  }
+
+  void setOver(int ovr) {
+    over = ovr;
+    dir = NORTH | SOUTH | EAST | WEST;
   }
 }
 
@@ -329,11 +378,18 @@ void draw() {
 
   world.draw();
 
-  // noLoop();
+  int gx = (mouseX / STEP),
+      gy = (mouseY / STEP);
+  noStroke();
+  fill(color(100, 255, 128, 0.2));
+  rect(gx * STEP + 2, gy * STEP + 2, STEP - 2, STEP - 2);
 }
 
 void keyPressed() {
-  noLoop();
+  if (key == ' ') {
+    world.clear();
+    knot.clear();
+  }
 }
 
 void mouseClicked() {
