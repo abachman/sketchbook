@@ -4,8 +4,8 @@ int w, h, c, r, clr,
     count = 0,
     cell_height, cell_width;
 
-final int STEP  = 16, // STEP must be a multiple of 16
-          STEPS = 60;
+final int STEP  = 48, // STEP must be a multiple of 16
+          STEPS = 20;
 
 final int VERT = 0, HORIZ = 1;
 
@@ -14,9 +14,12 @@ class Line {
   ArrayList points;
   World w;
 
+  Cell first;
+
   int crosses=0;
 
   Line (World _w) {
+    first = null;
     points = new ArrayList();
     w = _w;
   }
@@ -28,7 +31,8 @@ class Line {
   }
 
   Cell first() {
-    return (Cell)points.get(0);
+    if (first == null && points.size() > 0) first = (Cell)points.get(0);
+    return first;
   }
 
   void add(int gx, int gy) {
@@ -43,11 +47,15 @@ class Line {
 
     l = last();
 
+    // already a closed loop
+    if (points.size() > 3 && first() == last()) return;
+
     // can only add points in line with last point
     if (!l.in_line_with(gx, gy)) return;
 
-    // don't plop on existing cells
-    if (world.get_cell_at(gx, gy) != null) return;
+    // don't end on existing cells unless it's the starting point
+    if (world.get_cell_at(gx, gy) != null &&
+        world.get_cell_at(gx, gy) != first()) return;
 
     add_range(l.grid_x, l.grid_y, gx, gy);
   }
@@ -68,6 +76,8 @@ class Line {
 
     travel = dx == 0 ? VERT : HORIZ;
 
+    println("adding at " + gx1 + ", " + gy1 + ", " + gx2 + ", " + gy2);
+
     // draw cells in the appropriate direction
     while (nx != gx2 + dx || ny != gy2 + dy) {
       if (prev_cell == null) prev_cell = last();
@@ -85,9 +95,11 @@ class Line {
 
       // don't run parallel or cross corners
       if (next_cell != null) {
-        if (next_cell.is_corner() || next_cell.parallel_to(next_dir)) return;
-        else {
-          next_cell.setOver(next_cross(travel));
+        if (next_cell == first()) {
+          // is legit, leave it alone
+        } else if (next_cell.is_corner() || next_cell.parallel_to(next_dir) || next_cell == first()) {
+          // quit drawing, don't draw this one
+          return;
         }
       } else {
         next_cell = world.place_cell_at(nx, ny);
@@ -116,13 +128,30 @@ class Line {
     }
   }
 
-  void clear() { points.clear(); }
+  void clear() { points.clear(); first = null; }
 
   void draw() {
-    Iterator i = points.iterator();  // Get an iterator
+    int travel=0;
 
-    while (i.hasNext()) {
-      Cell c = (Cell)i.next();
+    crosses = 0;
+
+    for (int n=0; n < points.size(); n++) {
+      Cell c = (Cell)points.get(n);
+
+      if (n - 1 > 0) {
+        Cell prv = (Cell)points.get(n - 1);
+        switch (prv.direction_to(c)) {
+          case N: travel = VERT; break;
+          case S: travel = VERT; break;
+          case E: travel = HORIZ; break;
+          case W: travel = HORIZ; break;
+        }
+      }
+
+      if (c.crosses()) {
+        c.setOver(next_cross(travel));
+      }
+
       c.draw();
     }
   }
@@ -223,7 +252,7 @@ final int NORTH=1, N=1,
           SOUTH=2, S=2,
           EAST =4, E=4,
           WEST =8, W=8;
-final int NW = N | W, NE = N | E, SW = S | W, SE = S | E;
+final int NW = N | W, NE = N | E, SW = S | W, SE = S | E, NSEW = N | S | E | W;
 /*
  *  int dir = WEST;
  *  dir |= NORTH;
@@ -314,6 +343,10 @@ class Cell {
            ((dir & SE) == SE);
   }
 
+  boolean crosses() {
+    return (dir & NSEW) == NSEW;
+  }
+
   void draw() {
     if (over == NEITHER) {
       draw_center();
@@ -392,6 +425,16 @@ class Cell {
     return (this.dir & dir_flag) == dir_flag;
   }
 
+  // direction from this to other. In other words, what direction is
+  // the line travelling when moving from this cell to the other cell.
+  int direction_to(Cell other) {
+    if      (x < other.x) return EAST;
+    else if (x > other.x) return WEST;
+    else if (y < other.y) return SOUTH;
+    else if (y > other.y) return NORTH;
+    return 0;
+  }
+
   int exits() {
     int total = 0;
     if (northy()) total++;
@@ -409,13 +452,13 @@ class Cell {
 
 World world;
 Line  knot;
-boolean living;
+boolean living, automatic = false;
 
 // Random knotting patterns
 final int[] pattern_a = {NORTH, EAST, SOUTH, WEST};
 final int[] pattern_b = {NORTH, EAST, NORTH, EAST, SOUTH, WEST, SOUTH, WEST};
 
-int[] steps = pattern_b;
+int[] steps = pattern_a;
 
 void setup() {
   colorMode(HSB, 255);
@@ -434,12 +477,13 @@ void setup() {
   living = true;
 
   // frameRate(40);
+  frameRate(3);
 }
 
 void draw() {
   background(51);
 
-  if (living) {
+  if (living && automatic) {
     living = make_a_knot();
   }
 
@@ -451,6 +495,8 @@ void keyPressed() {
     world.clear();
     knot.clear();
     living = true;
+  } else if (key == 'a') {
+    automatic = !automatic;
   }
 }
 
