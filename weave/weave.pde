@@ -1,6 +1,6 @@
 import processing.pdf.*;
 
-final String VERSION = "v9";
+final String VERSION = "v11";
 
 final boolean PDF_MODE=false;
 
@@ -10,8 +10,12 @@ int w, h, c, r, clr,
     count = 0,
     cell_height, cell_width;
 
-final int STEP  = 16, // STEP must be a multiple of 16
-          STEPS = 40;
+final int STEP  = 32, // STEP must be a multiple of 16
+          STEPS = 40,
+          // STEPS_X = 30,
+          // STEPS_Y = 30;
+          STEPS_X = 2560 / STEP,
+          STEPS_Y = 1440 / STEP;
 
 final int VERT = 0, HORIZ = 1;
 
@@ -88,6 +92,8 @@ class Line {
     while (nx != gx2 + dx || ny != gy2 + dy) {
       if (prev_cell == null) prev_cell = last();
 
+      prev_cell.dirty = true;
+
       // the direction out from prev to next cell.
       if (travel == HORIZ) {
         next_dir = dx == 1 ? EAST : WEST;
@@ -103,8 +109,10 @@ class Line {
       if (next_cell != null) {
         if (next_cell == first()) {
           // is legit, leave it alone
-        } else if (next_cell.is_corner() || next_cell.parallel_to(next_dir) || next_cell == first()) {
-          // quit drawing, don't draw this one
+        } else if (next_cell.is_corner() ||
+                   next_cell.parallel_to(next_dir) ||
+                   next_cell == first()) {
+          // stop drawing, don't draw this cell
           return;
         }
         // this is the second visit, set second line color
@@ -139,39 +147,6 @@ class Line {
 
   void clear() { points.clear(); first = null; }
 
-  void draw() {
-    int travel=0;
-
-    crosses = 0;
-
-    for (int n=0; n < points.size(); n++) {
-      Cell c = (Cell)points.get(n);
-
-      if (n - 1 > 0) {
-        Cell prv = (Cell)points.get(n - 1);
-        switch (prv.direction_to(c)) {
-          case N: travel = VERT; break;
-          case S: travel = VERT; break;
-          case E: travel = HORIZ; break;
-          case W: travel = HORIZ; break;
-        }
-      }
-
-      if (c.crosses()) {
-        c.setOver(next_cross(travel));
-        if (visited.indexOf(c) < 0) {
-          c.first_pass = travel;
-        } else {
-          visited.add(c);
-        }
-      }
-
-      c.draw();
-    }
-
-    visited.clear();
-  }
-
   // is there an open cell that we can move to?
   boolean move_possible(int dir) {
     return possible_moves(dir).size() > 0;
@@ -205,7 +180,7 @@ class Line {
         break;
     }
 
-    while (gx < STEPS && gx >= 0 && gy < STEPS && gy >= 0) {
+      while (gx < STEPS_X && gx >= 0 && gy < STEPS_Y && gy >= 0) {
       if ((check = world.get_cell_at(gx, gy)) != null) {
         if (check.is_corner()) {
           return pts;
@@ -219,6 +194,52 @@ class Line {
     }
 
     return pts;
+  }
+
+  void draw() {
+    int travel=0;
+
+    crosses = 0;
+
+    for (int n=0; n < points.size(); n++) {
+      Cell c = (Cell)points.get(n);
+
+      if (n - 1 > 0) {
+        Cell prv = (Cell)points.get(n - 1);
+        switch (prv.direction_to(c)) {
+          case N: travel = VERT; break;
+          case S: travel = VERT; break;
+          case E: travel = HORIZ; break;
+          case W: travel = HORIZ; break;
+        }
+      }
+
+      if (c.crosses()) {
+        c.dirty = true;
+        int initial_over = c.over,
+            next_over = next_cross(travel);
+        if (initial_over != next_over) {
+          c.setOver(next_over);
+        }
+
+        if (visited.indexOf(c) < 0) {
+          // set color 1
+          c.first_pass = travel;
+        } else {
+          // set color 2
+          visited.add(c);
+        }
+      } else {
+        // set color 1
+      }
+
+      if (c.dirty) {
+        c.draw();
+        c.dirty = false;
+      }
+    }
+
+    visited.clear();
   }
 }
 
@@ -287,7 +308,7 @@ class Cell {
   color c_border, c_line,
         c_border2, c_line2;
 
-  boolean use_color_2;
+  boolean use_color_2, dirty;
 
   String id;
   int dir, first_pass;
@@ -298,15 +319,16 @@ class Cell {
   Cell(int _x, int _y, int _s) {
     over = NEITHER;
     use_color_2 = false;
+    dirty = true; // has cell changed?
 
     // line_type = EW_NS;
     dir = 0;
 
     // hsb
-    c_border = color(0, 0, 0);
+    c_border = color(0);
     c_line   = color(255, 0, 255);
 
-    c_border2 = color(0, 0, 0);
+    c_border2 = color(0);
     c_line2   = color(255, 0, 255);
 
     // grid coordinates
@@ -355,12 +377,8 @@ class Cell {
     midy = y + hstep;
   }
 
-  void setColor(color c) {
-    setLineColor(c);  setBorderColor(c);
-  }
-  void setColor2(color c) {
-    setLineColor2(c); setBorderColor2(c);
-  }
+  void setColor(color c) { setLineColor(c);   /* setBorderColor(c);  /* */ }
+  void setColor2(color c) { setLineColor2(c); /* setBorderColor2(c); /* */ }
 
   void setLineColor(color c) { c_line = c; }
   void setLineColor2(color c) { c_line2 = c; }
@@ -409,7 +427,8 @@ class Cell {
         }
       }
     }
-
+    // cells are dirty until they've been drawn, then they are clean
+    dirty = false;
   }
 
   void draw_center() {
@@ -511,49 +530,54 @@ boolean living, automatic = true;
 // Random knotting patterns
 final int[] pattern_a = {NORTH, EAST, SOUTH, WEST};
 final int[] pattern_b = {NORTH, EAST, NORTH, EAST, SOUTH, WEST, SOUTH, WEST};
+final int[] pattern_c = {NORTH, EAST, SOUTH, WEST, SOUTH, EAST, NORTH, WEST};
 
-int[] steps = pattern_a;
+int[] steps = pattern_c;
 
 void setup() {
   colorMode(HSB, 255);
 
   if (PDF_MODE) {
-    size(STEP * STEPS, STEP * STEPS, PDF, "knot.pdf");
+    size(STEP * STEPS_X, STEP * STEPS_Y, PDF, "knot.pdf");
     noLoop();
   } else {
-    size(STEP * STEPS, STEP * STEPS);
+    size(STEP * STEPS_X, STEP * STEPS_Y);
   }
 
   strokeCap(SQUARE);
+
   w = width; h = height;
   c = 0; r = -(STEP / 2);
   clr = 0;
 
-  cell_width = w / STEP;
-  cell_height = h / STEP;
+  cell_width = STEPS_X;
+  cell_height = STEPS_Y;
 
   // initialize world
   world = new World(cell_width, cell_height, STEP);
   knot  = new Line(world);
   living = true;
 
-
   // frameRate(40);
   // frameRate(3);
+  background(0);
 }
 
 void draw() {
-  background(0);
 
   while (living && automatic) {
     living = make_a_knot();
-    if (!PDF_MODE) break; // only one loop if we're not preparing a pdf
+    // if (!PDF_MODE) break; // only one loop if we're not preparing a pdf
   }
 
   knot.draw();
 
   if (PDF_MODE) {
     exit();
+  }
+
+  if (!living) {
+    noLoop();
   }
 }
 
@@ -563,13 +587,17 @@ void keyPressed() {
       world.clear();
       knot.clear();
       living = true;
+      fill(0, 145);
+      noStroke();
+      rect(0, 0, width, height);
+      loop();
       break;
     case 'a':
       automatic = !automatic;
       break;
     case 's':
       save(VERSION +"-"+ millis() + ".png");
-      println("saved!");
+      exit();
       break;
   }
 }
@@ -591,8 +619,8 @@ boolean make_a_knot() {
   Cell last_cell = knot.last();
 
   if (last_cell == null) {
-    // just place a point
-    knot.add(int(random(width / STEP)), int(random(height / STEP)));
+    // start in the center
+    knot.add(STEPS_X / 2, STEPS_Y / 2);
   } else  {
     int tries = 0;
     boolean possible = false;
@@ -604,7 +632,7 @@ boolean make_a_knot() {
       possibles = knot.possible_moves(cur_dir);
     }
     if (possibles.size() > 0) {
-      int[] point = (int[]) possibles.get( int(random(possibles.size())) );
+      int[] point = (int[]) possibles.get( int(random(possibles.size() / 2)) );
       knot.add(point[0], point[1]);
     } else {
       return false;
@@ -619,5 +647,6 @@ boolean make_a_knot() {
 int nc=0;
 color next_color() {
   nc = (nc + 1) % 255;
-  return color(nc, 255, 255);
+  // return color(nc, 255, 200); // color cycle
+  return color(255); // just white
 }
