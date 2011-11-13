@@ -14,36 +14,37 @@ void _init() {
     posts[f] = new Dot(random(width),random(height),random(RADIUS[0],RADIUS[1]),0,0);
   }
   for (int f=0;f<MAXDOTS;f++) {
-    dots[f] = new Dot(random(RADIUS[1], width-RADIUS[1]), random(RADIUS[1], height-RADIUS[1]), 
+    // moving
+    dots[f] = new Dot(random(RADIUS[1], width-RADIUS[1]), random(RADIUS[1], height-RADIUS[1]),
                       random(RADIUS[0],RADIUS[1]),
-                      random(SPEED[0], SPEED[1]) * (random(1) > .5 ? -1 : 1), 
+                      random(SPEED[0], SPEED[1]) * (random(1) > .5 ? -1 : 1),
                       random(SPEED[0], SPEED[1]) * (random(1) > .5 ? -1 : 1));
   }
 }
 
 void setup() {
-  size(400, 300);
+  size(600, 800);
   frameRate(30);
   smooth();
   _init();
-  
+
   // wireframe view controls
   buttons[0] = new Button(5, height - 15);
   buttons[1] = new Button(20, height - 15);
-  
+
   // dotval controls
   buttons[2] = new Button(width - 10, height - 10);
   buttons[3] = new Button(width - 10, height - 20);
   buttons[4] = new Button(width - 10, height - 30);
   buttons[5] = new Button(width - 10, height - 40);
-  
+
   // quality control
   buttons[6] = new Button(35, height - 15);
   buttons[6].state = true;
-  
+
   PFont font;
-  font = loadFont("LucidaSans-11.vlw"); 
-  textFont(font, 11); 
+  font = loadFont("LucidaSans-11.vlw");
+  textFont(font, 11);
 }
 
 boolean SHOWDOTS = false, SHOWPOSTS = false, QUAL = true;
@@ -65,7 +66,7 @@ void draw() {
     }
   }
   // Simple controls
-    
+
   buttons[0].drawme();
   buttons[1].drawme();
   buttons[2].drawme(); buttons[2].state = false;
@@ -112,14 +113,25 @@ void mousePressed() {
 void keyPressed() {
   if (keyCode == ENTER || keyCode == RETURN) {
     _init();
-  } 
+  } else if (keyCode == LEFT) {
+    // mover down
+    println("mover down");
+    MAXDOTS = MAXDOTS >= 0 ? MAXDOTS-1 : 0;
+    _init();
+  } else if (keyCode == RIGHT) {
+    // mover down
+    println("mover up");
+    MAXDOTS++;
+    _init();
+  }
 }
 
 class Dot {
   float x,y,rad;
   float l,r,t,b;
   float vx,vy;
-  Dot(float _x, float _y, float _rad, float _vx, float _vy) { 
+  color dot_fill;
+  Dot(float _x, float _y, float _rad, float _vx, float _vy) {
     x = _x;
     y = _y;
     rad = _rad;
@@ -129,7 +141,20 @@ class Dot {
     r = x+rad;
     t = y-rad;
     b = y+rad;
-  }  
+
+    switch (int(random(3))) {
+      case 0:
+        dot_fill = color(255, 0, 0, 50);
+        break;
+      case 1:
+        dot_fill = color(0, 255, 0, 50);
+        break;
+      case 2:
+        dot_fill = color(0, 0, 255, 50);
+        break;
+    }
+  }
+
   boolean update(Dot[] targs) {
     x += vx;
     y += vy;
@@ -137,35 +162,31 @@ class Dot {
     r = x+rad;
     t = y-rad;
     b = y+rad;
-    
-    //if(false) {
-      for (int f=0;f<targs.length;f++) {
-        Dot d = targs[f];
-        if (d == this || r < d.l || l > d.r || b < d.t || t > d.b) {
-          continue;
-        }
-        //println(this.toString() + " checking " + d.toString());
-        float da = (x-d.x), db = (y-d.y), dc = d.rad+rad; 
-        float sides = (da*da + db*db), rads = (dc*dc);
-        if (sides < rads) {
-          float r = (sides - rads) / 100;
-          if (QUAL)
-            fill(255,80);
-          else
-            fill(175);
-          ellipse((x+d.x)/2, (y+d.y)/2, r, r);
 
-          //vx = -vx;
-          //vy = -vy;
-          //return true;
-        }
+    for (int f=0;f<targs.length;f++) {
+      Dot d = targs[f];
+      if (d == this || r < d.l || l > d.r || b < d.t || t > d.b) {
+        continue;
       }
-    //}
-    
+
+      // interaction
+      float da = (x-d.x), db = (y-d.y), dc = d.rad+rad;
+      float sides = (da*da + db*db), rads = (dc*dc);
+      if (sides < rads) {
+        float r = (sides - rads) / 100;
+        if (QUAL)
+          fill(dot_fill);
+        else
+          fill(175);
+        ellipse((x+d.x)/2, (y+d.y)/2, r, r);
+      }
+    }
+
     if (l < 0 || r > width) vx = -vx;
     if (t < 0 || b > height) vy = -vy;
     return false;
-  }  
+  }
+
   void drawme() {
     if (QUAL)
       stroke(255, 50);
@@ -202,6 +223,6 @@ class Button {
       return true;
     }
     return false;
-   
+
   }
 }
