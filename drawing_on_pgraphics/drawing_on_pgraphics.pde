@@ -1,4 +1,5 @@
 
+// circles go here
 PGraphics surface;
 // each color of circles
 PGraphics[] circles = {null, null, null};
@@ -17,16 +18,13 @@ class Circle {
     dy = global_dy * (random(1) > 0.5 ? 1 : -1) + (int)random(-2,2);
     d  = global_d + (int)random(-20, 20);
   }
+
+  // simple bouncing
   void update(){
     x += dx;
     y += dy;
-    if (x >= hw || x <= -hw) {
-      dx *= -1;
-    }
-
-    if (y >= hw || y <= -hw) {
-      dy *= -1;
-    }
+    if (x >= hw || x <= -hw) { dx *= -1; }
+    if (y >= hw || y <= -hw) { dy *= -1; }
   }
 
   void draw(PGraphics surface){
@@ -34,11 +32,11 @@ class Circle {
   }
 }
 
-final int ccount = 600;
+final int ccount = 200;
 Circle[] cc = new Circle[ccount];
 
 void setup() {
-  size(1000, 1000);
+  size(400, 400);
   background(0);
   noStroke();
   smooth();
@@ -48,17 +46,20 @@ void setup() {
     cc[i] = new Circle();
   }
   surface = createGraphics(width, height, P2D);
+  surface.beginDraw();
+  surface.fill(255);
+  surface.smooth();
+  surface.noStroke();
+  surface.endDraw();
 }
 
 void draw() {
   background(0);
-  // surface = createGraphics(width, height, P2D);
+
   surface.beginDraw();
   surface.background(0);
+  // push 0,0 to center of view so I can rotate it later
   surface.translate(hw, hw);
-  surface.fill(255);
-  surface.smooth();
-  surface.noStroke();
   for (int i=0; i<ccount; i++) {
     cc[i].update();
     cc[i].draw(surface);
