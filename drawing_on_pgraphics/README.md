@@ -2,8 +2,9 @@ Goal: to draw a single image, tint it three ways, rotate it three ways, and
 blend it onto Processing's main canvas, creating a shifting mess of colorful
 bubbles.
 
-I'm only drawing one moving image, but you see three copies. The rotations
-make it look like the objects are all moving different directions, but
+I'm only drawing one moving image, but you see three copies, one each in red,
+blue, and gree. The rotations are what make it look like the objects are all
+moving different directions.
 
 Result:
 
