@@ -14,7 +14,7 @@
 
 class Pen {
   int x, y, q, fx, fy;
-  int r = 3; // line length
+  int r = 5; // line length
   int turn = 90; // turn
 
   Pen() {
@@ -87,8 +87,14 @@ Pen pen;
 float rot;
 int instr;
 
+void resize(float X, float  Y) {
+  size(X,Y);
+}
+
 void setup () {
-  size(640, 640);
+  size(800, 800);
+  ProcessingInit();
+
   stroke(#aaccee);
   strokeWeight(1);
   background(#141414);
@@ -96,7 +102,7 @@ void setup () {
   int n = 0;
   s = "FX";
   pen = new Pen();
-  while (n < 15) {
+  while (n < 16) {
     s = evolve(s);
     n++;
   }
@@ -106,7 +112,7 @@ void setup () {
 }
 
 void draw () {
-  translate(width/2 + width/4, height/2);
+  translate(width/2, height/2);
 
   // several steps per draw loop
   for (int r=0; r < 8; r++) {
