@@ -1,4 +1,4 @@
-// pure processing version
+// processing.js version
 /*
     The dragon curve drawn using an L-system.
       variables : X Y
