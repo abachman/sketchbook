@@ -89,7 +89,6 @@ int instr;
 
 void setup () {
   size(640, 640);
-  frameRate(30);
   stroke(#aaccee);
   strokeWeight(1);
   background(#141414);
@@ -107,10 +106,10 @@ void setup () {
 }
 
 void draw () {
-  translate(width/2, height/2);
+  translate(width/2 + width/4, height/2);
 
   // several steps per draw loop
-  for (int r=0; r < 32; r++) {
+  for (int r=0; r < 8; r++) {
     if (instr < s.length()) {
       switch(s.charAt(instr)) {
         case "F":
@@ -128,6 +127,3 @@ void draw () {
   }
 
 }
-
-
-
