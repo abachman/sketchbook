@@ -6,11 +6,13 @@
   <script>
     // code borrowed from Anthony Mattox: http://anthonymattox.com/full-browser-processing-js
     var ProcessingInit = function() {
-      $(window).resize(function () {
+      function resizeWindow() {
         var pCanvas = Processing.getInstanceById('pCanvas');
         pCanvas.resize($(window).width(),$(window).height());
-      });
-      $(window).resize();
+      }
+
+      $(window).resize(resizeWindow);
+      resizeWindow();
     }
   </script>
   <link href='reset.css' type='text/css' rel='stylesheet' />
