@@ -14,11 +14,12 @@
     angle: 90,
     length: 4,
     generations: 16,
-    start: {x: 0.5, y: 0.5},
+    start: {x: 0.5, y: 0.30},
     evolve: function (c) {
       switch (c) {
         case "X": return "X+YF+";
         case "Y": return "-FX-Y";
+        case "F": return "";
       }
     },
     render: function (pen, chr) {
@@ -52,8 +53,8 @@
     angle: 45,
     generations: 8,
     length: 2,
-    start: {x: 0.5, y: 1},
-    evolve: function (c, out_string) {
+    start: {x: 0.5, y: 1, r: Math.PI},
+    evolve: function (c) {
       switch (c) {
         case "0": return "1[-0]+0";
         case "1": return "11";
@@ -103,8 +104,8 @@
     angle: 39,
     generations: 5,
     length: 5,
-    start: {x: 0.5, y: 1},
-    evolve: function (c, out_string) {
+    start: {x: 0.5, y: 1, r: Math.PI},
+    evolve: function (c) {
       switch (c) {
         case "X": return "F-[[X]+X]+F[+FX]-X";
         case "F": return "FF";
@@ -148,10 +149,9 @@
     angle: 60,
     generations: 8,
     length: 2,
-    start: {x: 0.25, y: 0.75},
-    rotate: Math.PI + (Math.PI / 2),
+    start: {x: 0.25, y: 0.75, r: Math.PI * 1.5},
 
-    evolve: function (c, out_string) {
+    evolve: function (c) {
       switch (c) {
         case "A": return "B-A-B";
         case "B": return "A+B+A";
@@ -190,9 +190,9 @@
     angle: 60,
     generations: 5,
     length: 2,
-    start: {x: 0.25, y: 0.75},
+    start: {x: 0.25, y: 0.75, r: Math.PI},
 
-    evolve: function (c, out_string) {
+    evolve: function (c) {
       switch (c) {
         case "F":
           return "F+F--F+F";
@@ -239,7 +239,7 @@
     length: 2,
     start: {x: 0.25, y: 0.75},
 
-    evolve: function (c, out_string) {
+    evolve: function (c) {
       switch (c) {
         case "X": return '[F+F+F+F[3-X-Y]5+F8+F-F-F-F]';
         case "Y": return '[F+F+F+F[3-Y]5+F8+F-F-F-F]';
@@ -259,8 +259,91 @@
           break;
       }
     }
+  };
 
+  rules.HEXAGON_RULES = {
+    /*
+     axiom : F
+     angle : 60
+     rules : (F → -f+f+g[+f+f]-), (g → gg)
+
+                  -f+f+g[+f+f]-
+
+     The distance between the starting point and ending point of the
+     replacement string for "F" is exactly twice as long as the length
+     of each line in the string. Hence the replacement string for "X"
+     must have the same property even though the string "XX" results in
+     nothing being drawn.
+
+     */
+
+    title: "FIELD OF HEXAGONS",
+    color: 'rgb(100, 100, 100)',
+
+    axiom: "F",
+    angle: 60,
+    generations: 7,
+    length: 10,
+    start: {x: 0.25, y: 0.75},
+
+    evolve: function (c) {
+      switch (c) {
+        case "f": return '-f+f+g[+f+f]-';
+        case "g": return 'gg';
+      }
+    },
+
+    render: function (pen, chr) {
+      switch(chr) {
+        case "f":
+          pen.drawForward();
+          break;
+        case "-":
+          pen.turnLeft();
+          break;
+        case "+":
+          pen.turnRight();
+          break;
+        case "[":
+          pen.pushState();
+          break;
+        case "]":
+          pen.popState();
+          break;
+      }
+    }
+  }
+
+  rules.CROSS_RULES = {
+    title: "THE CROSS TILING",
+    color: 'rgb(241, 237, 169)',
+    axiom: 'FX',
+    angle: 90,
+    generations: 7,
+    length: 3,
+    start: {x: 0.5, y: 0.5},
+    evolve: function (c) {
+      switch (c) {
+        case "X": return "FX+FX+FXFY-FY-";
+        case "Y": return "+FX+FXFY-FY-FY";
+        case "F": return "";
+      }
+    },
+    render: function (pen, chr) {
+      switch(chr) {
+        case "F":
+          pen.drawForward();
+          break;
+        case "-":
+          pen.turnLeft();
+          break;
+        case "+":
+          pen.turnRight();
+          break;
+      }
+    }
 
   }
+
 })(window);
 

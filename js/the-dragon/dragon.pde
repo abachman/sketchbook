@@ -97,9 +97,13 @@ class Pen {
 
 // return next string
 String evolve (str) {
-  var out_string = [];
+  var out_string = [], result;
   for (int i=0; i < str.length(); i++) {
-    out_string.push(RULESET.evolve(str[i]) || str[i]);
+    result = RULESET.evolve(str[i]);
+    if (typeof result == 'undefined')
+      out_string.push(str[i]);
+    else
+      out_string.push(result);
   }
   return out_string.join('');
 }
@@ -129,7 +133,6 @@ void init(rules) {
   stroke(RULESET.color.r, RULESET.color.g, RULESET.color.b);
   strokeWeight(1);
   background(#141414);
-
 }
 
 void setup () {
@@ -139,7 +142,7 @@ void setup () {
 
 void draw () {
   translate(width * RULESET.start.x, height * RULESET.start.y);
-  rotate(RULESET.rotate || PI);
+  rotate(RULESET.start.r || 0);
 
   // several steps per draw loop
   for (int r=0; r < 16; r++) {

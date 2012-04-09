@@ -18,11 +18,15 @@
 
       var rule = window[ $('#rules .selected').data('ruleset') ];
 
+      processingInstance.init(rule);
+
       // modify the page
       $("#header h1").text(rule.title);
-      $("#header h1").css({'text-shadow': 'rgb(' + rule.color.r +','+ rule.color.g +','+ rule.color.b +') 0px 2px 2px'});
-
-      processingInstance.init(rule);
+      if (typeof rule.color == 'string') {
+        $("#header h1").css({'text-shadow': rule.color + ' 0px 2px 2px'});
+      } else {
+        $("#header h1").css({'text-shadow': 'rgb(' + rule.color.r +','+ rule.color.g +','+ rule.color.b +') 0px 2px 2px'});
+      }
 
       if ($('#header').is('.hidden')) $('#header').removeClass('hidden');
     }
@@ -33,6 +37,9 @@
     }
 
     $(function () {
+      // set link to color
+
+
       $('#options').hover(function () { $('#rules').toggleClass('hidden') });
       $('#options li a').click(function (evt) {
         loadInstance();
@@ -70,7 +77,7 @@
     }
     #header h1 {
       font: 64px Helvetica, Arial;
-      color: #141414;
+      color: #141414; /* */
       text-shadow: rgb(68, 85, 102) 0px 2px 3px;
       line-height: 0.8em;
     }
@@ -78,10 +85,10 @@
     #pCanvas { position: absolute; top: 0; left: 0; }
 
     #options {
-      opacity: 0.6;
       margin-top: 16px;
-      border: 1px solid #fff;
-      color: #fff;
+      border: 1px solid #444;
+      color: #666;
+      background: #141414;
       display: inline-block;
     }
     #options li { padding: 8px; }
@@ -103,11 +110,13 @@
       <li>
         <strong>RULES</strong>
         <ul id='rules' class='hidden'>
-          <li><a data-ruleset='DRAGON_RULES' class='selected'>THE DRAGON CURVE</a></li>
+          <li><a data-ruleset='DRAGON_RULES'>THE DRAGON CURVE</a></li>
           <li><a data-ruleset='TREE_RULES'>A SIMPLE TREE</a></li>
           <li><a data-ruleset='PLANT_RULES'>AN ORDINARY PLANT</a></li>
           <li><a data-ruleset='TRIANGLE_RULES'>THE SIERPINSKI TRIANGLE</a></li>
           <li><a data-ruleset='SNOWFLAKE_RULES'>THE KOCH SNOWFLAKE</a></li>
+          <li><a data-ruleset='CROSS_RULES' class='selected'>THE CROSS TILING</a></li>
+          <!-- <li><a data-ruleset='HEXAGON_RULES'>FIELD OF HEXAGONS</a></li> -->
           <!-- <li><a data-ruleset='TILING_RULES'>A SIMPLE TILING</a></li> -->
         </ul>
       </li>
@@ -117,7 +126,7 @@
   <canvas data-processing-sources="dragon.pde" id='pCanvas'></canvas>
 
   <div id='footer'>
-    <a href='https://github.com/abachman/sketchbook/blob/master/js/the-dragon/dragon.pde' target='_blank'>get the code</a>
+    <a href='https://github.com/abachman/sketchbook/tree/master/js/the-dragon' target='_blank'>get the code</a>
   </div>
 
   <script type="text/javascript">
