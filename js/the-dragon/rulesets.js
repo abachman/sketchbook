@@ -100,15 +100,17 @@
     title: "AN ORDINARY PLANT",
     color: {r: 74, g: 162, b: 40},
 
-    axiom: "X",
-    angle: 39,
-    generations: 5,
+    // axiom: "X",
+    axiom: '++++F',
+    angle: 360 / 16,
+    generations: 4,
     length: 5,
-    start: {x: 0.5, y: 1, r: Math.PI},
+    start: {x: 0.5, y: 1, r: Math.PI * 1.5},
     evolve: function (c) {
       switch (c) {
         case "X": return "F-[[X]+X]+F[+FX]-X";
-        case "F": return "FF";
+        case "F": return 'FF-[-F+F+F]+[+F-F-F]';
+        // case "F": return "FF";
       }
     },
 
