@@ -16,7 +16,7 @@
       loadInstance();
       processingInstance.resize($(window).width(), $(window).height());
 
-      var rule = window[ $('#rules .selected').data('ruleset') ];
+      var rule = global_rulesets[ $('#rules .selected').data('ruleset') ];
 
       processingInstance.init(rule);
 
@@ -36,15 +36,54 @@
       resizeWindow();
     }
 
-    $(function () {
-      // set link to color
+    // a parser
+    function rgb2color (rgb) {
+      var colors = {r:"", g:"", b:""},
+          // the next character in the string
+          chr,
+          // keys in the colors hash
+          c_opts = ['r','g','b'];
+          ic = false,
+          c_ind = 0,
+          i=0;
+      while ((chr = rgb[i]) != ")") {
+        if (chr == "(") {
+          ic = true;
+        } else if (chr == ",") {
+          ic = true;
+          c_ind++;
+        } else if (ic && chr != " ") {
+          colors[c_opts[c_ind]] += chr;
+        }
 
+        i++;
+      }
+      return colors;
+    }
+
+    var global_rulesets = {};
+
+    $(function () {
+      load_rulesets(global_rulesets);
+
+      var rs = window.location.hash.slice(1,50);
+      if (typeof global_rulesets[rs] != 'undefined') {
+        console.log('found ruleset ' + window.location.hash.slice(1,50));
+        $('#rules a').each(function () {
+          var el = $(this);
+          if (el.data('ruleset') == rs) {
+            $('#rules a').removeClass('selected');
+            el.addClass('selected');
+          }
+        })
+      }
 
       $('#options').hover(function () { $('#rules').toggleClass('hidden') });
       $('#options li a').click(function (evt) {
         loadInstance();
         $('#rules a').removeClass('selected');
         $(evt.target).addClass('selected');
+        window.location.hash = $(evt.target).data('ruleset');
         resizeWindow();
       });
     });
@@ -115,8 +154,8 @@
           <li><a data-ruleset='PLANT_RULES'>AN ORDINARY PLANT</a></li>
           <li><a data-ruleset='TRIANGLE_RULES'>THE SIERPINSKI TRIANGLE</a></li>
           <li><a data-ruleset='SNOWFLAKE_RULES'>THE KOCH SNOWFLAKE</a></li>
-          <li><a data-ruleset='CROSS_RULES' class='selected'>THE CROSS TILING</a></li>
-          <!-- <li><a data-ruleset='HEXAGON_RULES'>FIELD OF HEXAGONS</a></li> -->
+          <li><a data-ruleset='CROSS_RULES'>THE CROSS TILING</a></li>
+          <li><a data-ruleset='HEXAGON_RULES' class='selected'>SMALL BATCH OF HEXAGONS</a></li>
           <!-- <li><a data-ruleset='TILING_RULES'>A SIMPLE TILING</a></li> -->
         </ul>
       </li>

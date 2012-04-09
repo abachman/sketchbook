@@ -1,7 +1,7 @@
 // some rules taken from
 // * http://www.nahee.com/spanky/www/fractint/lsys/plants.html
 // * http://en.wikipedia.org/wiki/L-system
-(function (rules) {
+var load_rulesets = function (rules) {
   rules.DRAGON_RULES = {
     /*
       variables : X Y
@@ -11,7 +11,7 @@
       angle     : 90°
      */
     title: "THE DRAGON CURVE",
-    color: {r: 173, g: 230, b: 253},
+    color: 'rgb(173, 230, 253)',
 
     axiom: "FX",
     angle: 90,
@@ -235,7 +235,7 @@
      rules : (F → F+F--F+F)
      */
 
-    title: "THE KOCH SNOWFLAKE",
+    title: "TILING",
     color: {r: 240, g: 240, b: 240},
 
     axiom: "X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X",
@@ -282,19 +282,18 @@
 
      */
 
-    title: "FIELD OF HEXAGONS",
+    title: "SMALL BATCH OF HEXAGONS",
     color: 'rgb(100, 100, 100)',
 
-    axiom: "F",
     angle: 60,
-    generations: 7,
+    generations: 4,
     length: 10,
-    start: {x: 0.25, y: 0.75},
+    start: {x: 0.5, y: 0.5},
 
+    axiom: "f+xf+f+xf+f+xf",
     evolve: function (c) {
       switch (c) {
-        case "f": return '-f+f+g[+f+f]-';
-        case "g": return 'gg';
+        case "x": return '[++xf+f+xf+f+xf+f]';
       }
     },
 
@@ -350,5 +349,5 @@
 
   }
 
-})(window);
+}
 

@@ -95,6 +95,7 @@ class Pen {
   }
 }
 
+
 // return next string
 String evolve (str) {
   var out_string = [], result;
@@ -130,7 +131,12 @@ void init(rules) {
   }
   instr = 0;
 
-  stroke(RULESET.color.r, RULESET.color.g, RULESET.color.b);
+  if (typeof RULESET.color == "string") {
+    var c = rgb2color(RULESET.color);
+    stroke(c.r, c.g, c.b);
+  } else {
+    stroke(RULESET.color.r, RULESET.color.g, RULESET.color.b);
+  }
   strokeWeight(1);
   background(#141414);
 }
