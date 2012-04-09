@@ -1,3 +1,6 @@
+// some rules taken from
+// * http://www.nahee.com/spanky/www/fractint/lsys/plants.html
+// * http://en.wikipedia.org/wiki/L-system
 (function (rules) {
   rules.DRAGON_RULES = {
     /*
