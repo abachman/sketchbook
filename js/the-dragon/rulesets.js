@@ -2,7 +2,7 @@
 // * http://www.nahee.com/spanky/www/fractint/lsys/plants.html
 // * http://en.wikipedia.org/wiki/L-system
 var load_rulesets = function (rules) {
-  rules.DRAGON_RULES = {
+  rules.THEDRAGON = {
     /*
       variables : X Y
       constants : F + −
@@ -10,30 +10,30 @@ var load_rulesets = function (rules) {
       rules     : (X → X+YF+), (Y → -FX-Y)
       angle     : 90°
      */
-    title: "THE DRAGON CURVE",
+    title: 'THE DRAGON CURVE',
     color: 'rgb(173, 230, 253)',
 
-    axiom: "FX",
+    axiom: 'FX',
     angle: 90,
     length: 4,
-    generations: 16,
-    start: {x: 0.5, y: 0.30},
-    evolve: function (c) {
-      switch (c) {
-        case "X": return "X+YF+";
-        case "Y": return "-FX-Y";
-        case "F": return "";
-      }
+    generations: 12,
+    start: {x: 0.5, y: 0.40},
+
+    evolve: {
+      'X': 'X+YF+',
+      'Y': '-FX-Y',
+      'F': 'F'
     },
+
     render: function (pen, chr) {
       switch(chr) {
-        case "F":
+        case 'F':
           pen.drawForward();
           break;
-        case "-":
+        case '-':
           pen.turnLeft();
           break;
-        case "+":
+        case '+':
           pen.turnRight();
           break;
       }
@@ -41,7 +41,7 @@ var load_rulesets = function (rules) {
 
   };
 
-  rules.TREE_RULES = {
+  rules.THETREE = {
     /*
       variables : 0, 1
       constants : [, ]
@@ -49,41 +49,39 @@ var load_rulesets = function (rules) {
       rules     : (1 → 11), (0 → 1[0]0)
      */
 
-    title: "A SIMPLE TREE",
+    title: 'A SIMPLE TREE',
     color: {r: 162, g: 74, b: 40},
 
-    axiom: "0",
+    axiom: '0',
     angle: 45,
     generations: 8,
     length: 2,
     start: {x: 0.5, y: 1, r: Math.PI},
-    evolve: function (c) {
-      switch (c) {
-        case "0": return "1[-0]+0";
-        case "1": return "11";
-      }
+    evolve: {
+      '0': '1[-0]+0',
+      '1': '11'
     },
     render: function (pen, chr) {
       switch(chr) {
-        case "F":
+        case 'F':
           pen.drawForward();
           break;
-        case "-":
+        case '-':
           pen.turnLeft();
           break;
-        case "+":
+        case '+':
           pen.turnRight();
           break;
-        case "[":
+        case '[':
           pen.pushState();
           break;
-        case "]":
+        case ']':
           pen.popState();
           break;
-        case "1":
+        case '1':
           pen.drawForward();
           break;
-        case "0":
+        case '0':
           pen.drawForward();
           pen.leaf();
           break;
@@ -91,7 +89,7 @@ var load_rulesets = function (rules) {
     }
   };
 
-  rules.PLANT_RULES = {
+  rules.THEPLANT = {
     /*
       variables : X F
       constants : + −
@@ -100,45 +98,42 @@ var load_rulesets = function (rules) {
       angle  : 25°
     */
 
-    title: "AN ORDINARY PLANT",
+    title: 'AN ORDINARY PLANT',
     color: {r: 74, g: 162, b: 40},
 
-    // axiom: "X",
+    // axiom: 'X',
     axiom: '++++F',
     angle: 360 / 16,
     generations: 4,
     length: 5,
     start: {x: 0.5, y: 1, r: Math.PI * 1.5},
-    evolve: function (c) {
-      switch (c) {
-        case "X": return "F-[[X]+X]+F[+FX]-X";
-        case "F": return 'FF-[-F+F+F]+[+F-F-F]';
-        // case "F": return "FF";
-      }
+    evolve: {
+      'X': 'F-[[X]+X]+F[+FX]-X',
+      'F': 'FF-[-F+F+F]+[+F-F-F]'
     },
 
     render: function (pen, chr) {
       switch(chr) {
-        case "F":
+        case 'F':
           pen.drawForward();
           break;
-        case "-":
+        case '-':
           pen.turnLeft();
           break;
-        case "+":
+        case '+':
           pen.turnRight();
           break;
-        case "[":
+        case '[':
           pen.pushState();
           break;
-        case "]":
+        case ']':
           pen.popState();
           break;
       }
     }
   };
 
-  rules.TRIANGLE_RULES = {
+  rules.TRIANGLE = {
     /*
       variables : A B
       constants : + −
@@ -147,126 +142,144 @@ var load_rulesets = function (rules) {
       angle     : 60°
      */
 
-    title: "THE SIERPINSKI TRIANGLE",
+    title: 'THE SIERPINSKI TRIANGLE',
     color: {r: 40, g: 74, b: 162},
 
-    axiom: "A",
+    axiom: 'A',
     angle: 60,
     generations: 8,
     length: 2,
     start: {x: 0.25, y: 0.75, r: Math.PI * 1.5},
 
-    evolve: function (c) {
-      switch (c) {
-        case "A": return "B-A-B";
-        case "B": return "A+B+A";
-      }
+    evolve: {
+      'A': 'B-A-B',
+      'B': 'A+B+A'
     },
 
     render: function (pen, chr) {
       switch(chr) {
-        case "A":
+        case 'A':
           pen.drawForward();
           break;
-        case "B":
+        case 'B':
           pen.drawForward();
           break;
-        case "-":
+        case '-':
           pen.turnLeft();
           break;
-        case "+":
+        case '+':
           pen.turnRight();
           break;
       }
     }
   };
 
-  rules.SNOWFLAKE_RULES = {
+  rules.SNOWFLAKE = {
     /*
      axiom : F--F--F
      angle : 60
      rules : (F → F+F--F+F)
      */
 
-    title: "THE KOCH SNOWFLAKE",
+    title: 'THE KOCH SNOWFLAKE',
     color: {r: 240, g: 240, b: 240},
 
-    axiom: "F--F--F",
+    axiom: 'F--F--F',
     angle: 60,
     generations: 5,
     length: 2,
     start: {x: 0.25, y: 0.75, r: Math.PI},
 
-    evolve: function (c) {
-      switch (c) {
-        case "F":
-          return "F+F--F+F";
-      }
+    evolve: {
+      'F': 'F+F--F+F'
     },
 
     render: function (pen, chr) {
       switch(chr) {
-        case "F":
+        case 'F':
           pen.drawForward();
           break;
-        case "-":
+        case '-':
           pen.turnLeft();
           break;
-        case "+":
+        case '+':
           pen.turnRight();
           break;
       }
     }
   }
 
-  //  int generations = 6;                    // set no of recursions
-  //  axiom = "X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X";
-  //  grammar = new SimpleGrammar(this, axiom);  // initialize custom library
-  //  grammar.addRule('X', "[F+F+F+F[3-X-Y]5+F8+F-F-F-F]");
-  //  grammar.addRule('Y', "[F+F+F+F[3-Y]5+F8+F-F-F-F]");
-  //  startLength = 800;
-  //  production = grammar.createGrammar(generations);
-  //  drawLength = startLength * pow(0.5, generations);
-
-  rules.TILING_RULES = {
+  rules.HEXAGONAL_GOSPER = {
     /*
-     axiom : F--F--F
-     angle : 60
-     rules : (F → F+F--F+F)
      */
 
-    title: "TILING",
+    title: 'HEXAGONAL GOSPER CURVE',
     color: {r: 240, g: 240, b: 240},
 
-    axiom: "X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X+X",
+    axiom: 'XF',
     angle: 60,
-    generations: 5,
-    length: 2,
-    start: {x: 0.25, y: 0.75},
+    generations: 4,
+    length: 500 / Math.pow(3, 4),
+    start: {x: 0.25, y: 0.25, r: Math.PI / 2},
 
-    evolve: function (c) {
-      switch (c) {
-        case "X": return '[F+F+F+F[3-X-Y]5+F8+F-F-F-F]';
-        case "Y": return '[F+F+F+F[3-Y]5+F8+F-F-F-F]';
-      }
+    evolve: {
+      'F' : 'F',
+      'X' : 'X+YF++YF-FX--FXFX-YF+',
+      'Y' : '-FX+YFYF++YF+FX--FX-Y',
+      '+' : '+',
+      '-' : '-'
     },
 
     render: function (pen, chr) {
       switch(chr) {
-        case "F":
+        case 'F':
           pen.drawForward();
           break;
-        case "-":
+        case '-':
           pen.turnLeft();
           break;
-        case "+":
+        case '+':
           pen.turnRight();
           break;
       }
     }
   };
 
-  rules.HEXAGON_RULES = {
+  rules.HEXADRAGON = {
+    /*
+     */
+
+    title: 'HEXA-DRAGON',
+    color: {r: 240, g: 240, b: 240},
+
+    axiom: 'X',
+    angle: 60,
+    generations: 10,
+    length: 6,
+    start: {x: 0.5, y: 0.75, r: Math.PI / 2},
+
+    evolve: {
+      'X': 'X+F-F-FY',
+      'Y': '-XF+F+FY',
+      'F': 'F'
+    },
+
+    render: function (pen, chr) {
+      switch(chr) {
+        case 'F':
+          pen.drawForward();
+          break;
+        case '-':
+          pen.turnLeft();
+          break;
+        case '+':
+          pen.turnRight();
+          break;
+      }
+    }
+  };
+
+  rules.HEXAGONS = {
     /*
      axiom : F
      angle : 60
@@ -275,79 +288,75 @@ var load_rulesets = function (rules) {
                   -f+f+g[+f+f]-
 
      The distance between the starting point and ending point of the
-     replacement string for "F" is exactly twice as long as the length
-     of each line in the string. Hence the replacement string for "X"
-     must have the same property even though the string "XX" results in
+     replacement string for 'F' is exactly twice as long as the length
+     of each line in the string. Hence the replacement string for 'X'
+     must have the same property even though the string 'XX' results in
      nothing being drawn.
 
      */
 
-    title: "SMALL BATCH OF HEXAGONS",
+    title: 'SMALL BATCH OF HEXAGONS',
     color: 'rgb(100, 100, 100)',
 
     angle: 60,
-    generations: 4,
-    length: 10,
-    start: {x: 0.5, y: 0.5},
+    generations: 14,
+    length: 300 / 14,
+    start: {x: 0.5, y: 0.25},
 
-    axiom: "f+xf+f+xf+f+xf",
-    evolve: function (c) {
-      switch (c) {
-        case "x": return '[++xf+f+xf+f+xf+f]';
-      }
+    axiom: 'x',
+    evolve: {
+      'f' : 'f',
+      'x' : '[-f+f[y]+f][+f-f[x]-f]',
+      'y' : '[-f+f[y]+f][+f-f-f]',
     },
 
     render: function (pen, chr) {
       switch(chr) {
-        case "f":
+        case 'f':
           pen.drawForward();
           break;
-        case "-":
+        case '-':
           pen.turnLeft();
           break;
-        case "+":
+        case '+':
           pen.turnRight();
           break;
-        case "[":
+        case '[':
           pen.pushState();
           break;
-        case "]":
+        case ']':
           pen.popState();
           break;
       }
     }
   }
 
-  rules.CROSS_RULES = {
-    title: "THE CROSS TILING",
+  rules.CROSSES = {
+    title: 'THE CROSS TILING',
     color: 'rgb(241, 237, 169)',
     axiom: 'FX',
     angle: 90,
-    generations: 7,
+    generations: 5,
     length: 3,
     start: {x: 0.5, y: 0.5},
-    evolve: function (c) {
-      switch (c) {
-        case "X": return "FX+FX+FXFY-FY-";
-        case "Y": return "+FX+FXFY-FY-FY";
-        case "F": return "";
-      }
+    evolve: {
+      'X': 'FX+FX+FXFY-FY-',
+      'Y': '+FX+FXFY-FY-FY',
+      'F': ''
     },
     render: function (pen, chr) {
       switch(chr) {
-        case "F":
+        case 'F':
           pen.drawForward();
           break;
-        case "-":
+        case '-':
           pen.turnLeft();
           break;
-        case "+":
+        case '+':
           pen.turnRight();
           break;
       }
     }
-
   }
-
 }
 

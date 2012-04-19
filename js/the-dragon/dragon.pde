@@ -100,8 +100,8 @@ class Pen {
 String evolve (str) {
   var out_string = [], result;
   for (int i=0; i < str.length(); i++) {
-    result = RULESET.evolve(str[i]);
-    if (typeof result == 'undefined')
+    result = RULESET.evolve[str[i]];
+    if (typeof result == "undefined")
       out_string.push(str[i]);
     else
       out_string.push(result);
@@ -131,14 +131,52 @@ void init(rules) {
   }
   instr = 0;
 
+  setStrokeToRuleset();
+
+  // show resulting string
+  // console.log(s);
+
+  // progress bar
+  fadr = 0;
+
+  strokeWeight(1);
+  background(#141414);
+}
+
+void drawProgress(completion) {
+  var prog_height = 20,
+      prog_width = 280,
+      prog_padding = 2,
+      inset = 0,
+      edge_padding = 8;
+
+  var bx = width - prog_width - edge_padding,
+      by = height - prog_height - edge_padding,
+      ex = bx + prog_width;
+
+  if (completion < 0) {
+    fill(20, 20, 20, 30);
+    noStroke();
+    // fader
+    rect(bx - 1, by - 1, prog_width + 2, prog_height + 2);
+  } else if (completion <= 1.0) {
+    rect(bx, by, prog_width, prog_height);
+    noStroke();
+    fill(#eeeeee);
+    rect(bx, by,
+         prog_width * completion,
+         prog_height);
+    setStrokeToRuleset();
+  }
+}
+
+void setStrokeToRuleset() {
   if (typeof RULESET.color == "string") {
     var c = rgb2color(RULESET.color);
     stroke(c.r, c.g, c.b);
   } else {
     stroke(RULESET.color.r, RULESET.color.g, RULESET.color.b);
   }
-  strokeWeight(1);
-  background(#141414);
 }
 
 void setup () {
@@ -146,7 +184,10 @@ void setup () {
   ProcessingInit();
 }
 
+int fadr;
+boolean completed = false;
 void draw () {
+  pushMatrix();
   translate(width * RULESET.start.x, height * RULESET.start.y);
   rotate(RULESET.start.r || 0);
 
@@ -156,5 +197,25 @@ void draw () {
       pen.render(s.charAt(instr));
     }
     instr++;
+  }
+  popMatrix();
+
+  stroke(#888888);
+  noFill();
+
+  if (instr < s.length()) {
+    drawProgress(1.0 * instr / s.length());
+    completed = true;
+  } else {
+    // draw completed once
+    if (completed) {
+      drawProgress(100.0);
+      completed = false;
+    }
+    // 20 frames for fading
+    if (fadr < 40) {
+      drawProgress(-1);
+      fadr++;
+    }
   }
 }

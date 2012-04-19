@@ -4,6 +4,7 @@
   <title>l-systems</title>
   <script src="processing.js" type="text/javascript"></script>
   <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="underscore.js"></script>
   <script src='rulesets.js'></script>
   <script>
     // fullscreen canvas from Anthony Mattox: http://anthonymattox.com/full-browser-processing-js
@@ -66,6 +67,14 @@
     $(function () {
       load_rulesets(global_rulesets);
 
+      var rset, item_template = _.template("<a data-ruleset='<%= id %>'><%= title %></a>");
+      for (var rules in global_rulesets) {
+        rset = global_rulesets[rules];
+        $('#rules').append($('<li></li>').html( item_template({id: rules, title: rset.title})));
+      }
+
+      $('#rules li:first').find('a').addClass('selected')
+
       var rs = window.location.hash.slice(1,50);
       if (typeof global_rulesets[rs] != 'undefined') {
         console.log('found ruleset ' + window.location.hash.slice(1,50));
@@ -75,10 +84,11 @@
             $('#rules a').removeClass('selected');
             el.addClass('selected');
           }
-        })
+        });
       }
 
       $('#options').hover(function () { $('#rules').toggleClass('hidden') });
+
       $('#options li a').click(function (evt) {
         loadInstance();
         $('#rules a').removeClass('selected');
@@ -149,14 +159,6 @@
       <li>
         <strong>RULES</strong>
         <ul id='rules' class='hidden'>
-          <li><a data-ruleset='DRAGON_RULES'>THE DRAGON CURVE</a></li>
-          <li><a data-ruleset='TREE_RULES'>A SIMPLE TREE</a></li>
-          <li><a data-ruleset='PLANT_RULES'>AN ORDINARY PLANT</a></li>
-          <li><a data-ruleset='TRIANGLE_RULES'>THE SIERPINSKI TRIANGLE</a></li>
-          <li><a data-ruleset='SNOWFLAKE_RULES'>THE KOCH SNOWFLAKE</a></li>
-          <li><a data-ruleset='CROSS_RULES'>THE CROSS TILING</a></li>
-          <li><a data-ruleset='HEXAGON_RULES' class='selected'>SMALL BATCH OF HEXAGONS</a></li>
-          <!-- <li><a data-ruleset='TILING_RULES'>A SIMPLE TILING</a></li> -->
         </ul>
       </li>
     </ul>
