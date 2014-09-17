@@ -34,6 +34,7 @@ void setup() {
   oscP5.plug(this,"triggerClear","/clear");
   oscP5.plug(this,"triggerFlip","/flip");
   oscP5.plug(this,"triggerToggle","/toggle");
+  oscP5.plug(this,"triggerFrame","/frame");
   
   idx = 0;
   pidx = 0;
@@ -84,6 +85,11 @@ public void triggerClear() {
   film = new PImage[FLEN];
 }
 
+public void triggerFrame(int f) {
+  if (f >= 0 && f < FLEN) {
+    pidx = f;
+  }
+}
 
 PImage frame;
 
