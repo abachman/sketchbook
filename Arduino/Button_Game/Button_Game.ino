@@ -92,10 +92,20 @@ void checkScore() {
     score += 1;
     Serial.println("POINT! ************");
     Serial.println(score);
-    digitalWrite(scoreYes, HIGH);   // turn the LED on (HIGH is the voltage level)
+    
+    // blink the scoreYes light score times.
+    for (int i=0; i < score; i++) { 
+      digitalWrite(scoreYes, HIGH);
+      delay(400);
+      digitalWrite(scoreYes, LOW);
+      delay(400);
+    }
+    
+    
   } else {
+    score = 0;
     Serial.println("fail");
-    digitalWrite(scoreNo, HIGH);   // turn the LED on (HIGH is the voltage level
+    digitalWrite(scoreNo, HIGH);
   }
   delay(1000);
   
