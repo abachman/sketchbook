@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+  <head>
+    <style>
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+
+      #texter {
+        background-color: #000;
+      }
+    </style>
+    <script src='jquery.js'></script>
+    <script>
+      // var stopper = false,
+      //     intv = null;
+
+      // setTimeout(
+      //   if (!stopper) setTimeout(intv)
+      // }, 10000)
+    </script>
+  </head>
+  <body>
+    <h1>CANVAS</h1>
+    <canvas id='texter' width='800' height='200'>
+    </canvas>
+
+    <script>
+      // canvas utilities
+      function background(color, element) {
+        var c = element.getContext('2d')
+        c.clearRect(0, 0, element.width, element.height)
+      }
+    </script>
+
+    <script>
+      var operation = [
+        "source-over",       // 0
+        "source-in",         // 1
+        "source-out",        // 2
+        "source-atop",       // 3
+        "destination-over",  // 4
+        "destination-in",    // 5
+        "destination-out",   // 6
+        "destination-atop",  // 7
+        "lighter",           // 8
+        "xor",               // 9
+        "copy"               // 10
+      ]
+
+      var WordSpace = function (cvs) {
+        this.element = cvs
+        this.ctx = cvs.getContext('2d')
+        this.ctx.textBaseline = 'middle'
+
+        // init vars
+        this.set_background_styles()
+        this.word_right = cvs.width - this.ctx.measureText('MORE').width - 20
+        this.word_left  = 0
+      }
+
+      WordSpace.prototype.set_background_styles = function () {
+        this.ctx.font = "60pt Futura";
+        this.ctx.fillStyle = '#555'
+      }
+
+      WordSpace.prototype.set_foreground_styles = function (color) {
+        this.ctx.font = "bold 90pt Futura";
+        this.ctx.fillStyle = color || '#093'
+      }
+
+      WordSpace.prototype.draw_baltimore = function () {
+        this.set_background_styles()
+        // this.word_right = this.ctx.measureText('BALTI').width + this.word_left
+        this.word_left = this.word_right - this.ctx.measureText('BALTI').width
+        this.ctx.fillText("BALTI", this.word_left, 100);
+        this.ctx.fillText("MORE", this.word_right, 100);
+      }
+
+      WordSpace.prototype.draw_word = function (word, color, top) {
+        this.set_foreground_styles(color)
+        this.ctx.globalCompositeOperation = operation[2]
+        this.ctx.fillText(
+          word,
+          this.word_right - this.ctx.measureText(word).width, // left
+          top // top
+        );
+      }
+
+      var el = document.getElementById('texter'),
+          ws = new WordSpace(el)
+      background('#000', el)
+      ws.draw_baltimore()
+      ws.draw_word('DESIGN', '#f22', 50)
+      ws.draw_word('THINK', '#22f', 100)
+      ws.draw_word('MAKE', '#2f2', 150)
+
+      // //set rightDown or leftDown if the right or left keys are down
+      // function onKeyDown(evt) {
+      //   if (evt.keyCode == 39)      l += 10;
+      //   else if (evt.keyCode == 37) l -= 10;
+      //   background('rgb(0,0,0)', document.getElementById('texter'))
+      //   r = drawBaltimore(ctx)
+      //   drawWord("MAKE", l)
+      // }
+
+      // $(document).keydown(onKeyDown);
+    </script>
+  </body>
+</html>
