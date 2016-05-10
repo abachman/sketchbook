@@ -88,12 +88,17 @@ String s;
 Pen pen;
 float rot;
 int instr;
+float hue, bright; 
+int HSB_MAX = 1000;
+int BRIGHT_FLOOR = 1000;
 
 void setup () {
-  size(440, 440);
+  size(600, 800);
   frameRate(30);
-  stroke(#ffffff);
-  background(#141414);
+  hue = 0.0;
+  bright = 400.0;
+  colorMode(HSB, HSB_MAX);
+  background(0, 0, 5);
 
   int n = 0;
   s = "FX";
@@ -108,7 +113,9 @@ void setup () {
 }
 
 void draw () {
-  translate(width/2, height/2);
+  translate(width/1.5, height/4);
+  
+  stroke(int(hue), HSB_MAX, int(bright) + BRIGHT_FLOOR);
 
   // four steps per draw loop
   for (int r=0; r<128; r++) {
@@ -116,6 +123,8 @@ void draw () {
       switch(s.charAt(instr)) {
         case 'F':
           pen.draw_forward();
+          hue = (hue + 0.02) % HSB_MAX;
+          bright = (bright + 0.4) % (HSB_MAX - BRIGHT_FLOOR);
           break;
         case '-':
           pen.turn_left();

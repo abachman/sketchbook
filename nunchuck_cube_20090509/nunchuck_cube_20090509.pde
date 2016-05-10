@@ -8,28 +8,36 @@
 
 float xmag, ymag = 0;
 float newXmag, newYmag = 0;
-int sensorCount = 5;                        // number of values to expect
+int sensorCount = 7;                        // number of values to expect
+
+// NUNCHUCK sensors
+
+static int STICK_X = 0;
+static int STICK_Y = 1;
+static int ACCEL_X = 2;
+static int ACCEL_Y = 3;
+static int ACCEL_Z = 4;
+static int BUTTON_Z = 5;
+static int BUTTON_C = 6;
 
 import processing.serial.*;
 Serial myPort;                // The serial port
 
-int BAUDRATE = 115200;
-char DELIM = ','; // the delimeter for parsing incoming data
+int BAUDRATE = 19200;
+char DELIM = ' '; // the delimeter for parsing incoming data
 
-void setup()
-{
-  size(200, 200, P3D);
+void setup() {
+  size(600, 600, P3D);
   noStroke();
   colorMode(RGB, 1);
-  myPort = new Serial(this, Serial.list()[0], BAUDRATE);
+  println(Serial.list());
+  myPort = new Serial(this, Serial.list()[4], BAUDRATE);
   // clear the serial buffer:
   myPort.clear();
-
 }
 float x, z;
 
-void draw()
-{
+void draw() {
   background(0.5, 0.5, 0.45);
 
   pushMatrix();
@@ -49,15 +57,19 @@ void draw()
     ymag -= diff/4.0;
   }
 
-
 //  if ((sensorValues[1] > 15) && (sensorValues[1] < 165)) {
-    z = sensorValues[0] / 180 * PI ;
-    x = sensorValues[1] / 180 * PI;
+    z = sensorValues[ACCEL_X] / 180 * PI ;
+    x = sensorValues[ACCEL_Y] / 180 * PI;
  // }
-
-   rotateZ(z);
-   rotateX(x);
-  scale(50);
+ 
+ 
+  float transX = map(sensorValues[STICK_X], 0, 255, -255, 255), 
+        transY = map(sensorValues[STICK_Y], 0, 255, 255, -255);
+  translate(transX, transY);
+  
+  rotateZ(z);
+  rotateX(x);
+  scale(120);
   beginShape(QUADS);
 
   fill(0, 1, 1);
@@ -118,6 +130,7 @@ void draw()
 
   popMatrix();
 }
+
 float[] sensorValues = new float[sensorCount];  // array to hold the incoming values
 
 void serialEvent(Serial myPort) {
@@ -126,8 +139,8 @@ void serialEvent(Serial myPort) {
   // if the read data is a real string, parse it:
 
   if (serialString != null) {
-    println(serialString);
-    //println(serialString.charAt(serialString.length()-3));
+    // println(serialString);
+    // println(serialString.charAt(serialString.length()-3));
     // println(serialString.charAt(serialString.length()-2));
     // split it into substrings on the DELIM character:
     String[] numbers = split(serialString, DELIM);
@@ -142,7 +155,7 @@ void serialEvent(Serial myPort) {
           sensorValues[i] =  float(numbers[i]);
         }
         // Things we don't handle in particular can get output to the text window
-        print(serialString);
+        // print(serialString);
       }
     }
   }

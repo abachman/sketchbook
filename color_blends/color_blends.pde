@@ -10,7 +10,7 @@ PGraphics surface;
 
 void setup() {
   colorMode(RGB);
-  size(400, 400);
+  size(400, 400, P2D);
   noStroke();
   smooth();
   background(0);

@@ -2,6 +2,7 @@ import processing.pdf.*;
 
 final String VERSION = "v11";
 
+// set PDF drawing to true to save generated knot as a PDF immediately.
 final boolean PDF_MODE=false;
 
 // Maybe maze drawing offers a clue?
@@ -10,29 +11,53 @@ int w, h, c, r, clr,
     count = 0,
     cell_height, cell_width;
 
-final int STEP  = 32, // STEP must be a multiple of 16
-          STEPS = 40,
-          // STEPS_X = 30,
-          // STEPS_Y = 30;
-          STEPS_X = 2560 / STEP,
-          STEPS_Y = 1440 / STEP;
+final int STEP  = 16, // STEP must be a multiple of 16
+          STEPS_X = 32,
+          STEPS_Y = 32;
+
+// STEPS_X = 2560 / STEP;
+// STEPS_Y = 1440 / STEP;
 
 final int VERT = 0, HORIZ = 1;
 
-// lines are what knots are made of
-class Line {
-  ArrayList points, visited;
-  World w;
+// UTILITY FUNCTIONS
 
+// return starting pixel location of cell at grid step
+int[] cell_at(int gx, int gy) {
+  return new int[] {gx * STEP, gy * STEP};
+}
+
+// string suitable for hashing
+String cell_id(int x, int y) {
+  int[] point = cell_at(x, y);
+  int _x = point[0],
+      _y = point[1];
+  return  _x + "," + _y;
+}
+
+// lines are what knots are made of
+class Knot {
+  ArrayList points, visited;
+  // HashMap cells;
+  Cell[][] cell_grid;
+
+  // start
   Cell first;
+  // newest living cell
+  Cell current;
 
   int crosses=0;
 
-  Line (World _w) {
+  Knot () {
     first = null;
     points = new ArrayList();
     visited = new ArrayList();
-    w = _w;
+    cell_grid = new Cell[STEPS_X][];
+    for (int x=0; x<STEPS_X; x++) {
+      cell_grid[x] = new Cell[STEPS_Y];
+    }
+
+    // cells = new HashMap(STEPS_X * STEPS_Y);
   }
 
   Cell last() {
@@ -51,7 +76,7 @@ class Line {
 
     // first cell
     if (points.size() == 0) {
-      c = w.place_cell_at(gx, gy);
+      c = this.place_cell_at(gx, gy);
       c.setColor(next_color());
       points.add(c);
       return;
@@ -66,8 +91,8 @@ class Line {
     if (!l.in_line_with(gx, gy)) return;
 
     // don't end on existing cells unless it's the starting point
-    if (world.get_cell_at(gx, gy) != null &&
-        world.get_cell_at(gx, gy) != first()) return;
+    if (this.get_cell_at(gx, gy) != null &&
+        this.get_cell_at(gx, gy) != first()) return;
 
     add_range(l.grid_x, l.grid_y, gx, gy);
   }
@@ -103,7 +128,7 @@ class Line {
         prev_dir = dy == 1 ? NORTH : SOUTH;
       }
 
-      next_cell = world.get_cell_at(nx, ny);
+      next_cell = this.get_cell_at(nx, ny);
 
       // don't run parallel or cross corners
       if (next_cell != null) {
@@ -118,7 +143,7 @@ class Line {
         // this is the second visit, set second line color
         next_cell.setColor2(next_color());
       } else {
-        next_cell = world.place_cell_at(nx, ny);
+        next_cell = this.place_cell_at(nx, ny);
         next_cell.setColor(next_color());
       }
 
@@ -145,14 +170,25 @@ class Line {
     }
   }
 
-  void clear() { points.clear(); first = null; }
+  void clear() {
+    // cells.clear();
+    points.clear();
+    for (int x=0; x<STEPS_X; x++) {
+      for (int y=0; y<STEPS_Y; y++) {
+        cell_grid[x][y] = null;
+      }
+    }
+    current = null; first = null;
+  }
 
   // is there an open cell that we can move to?
   boolean move_possible(int dir) {
     return possible_moves(dir).size() > 0;
   }
 
-  // can move to any empty cell that is not past a corner
+  // can move to any empty cell that is not past a corner.
+  // walk along the grid, checking each point as a possible
+  // destination.
   ArrayList possible_moves(int dir) {
     Cell l = last(), check;
     ArrayList pts = new ArrayList();
@@ -180,8 +216,11 @@ class Line {
         break;
     }
 
-      while (gx < STEPS_X && gx >= 0 && gy < STEPS_Y && gy >= 0) {
-      if ((check = world.get_cell_at(gx, gy)) != null) {
+    while (gx < STEPS_X && gx >= 0 && gy < STEPS_Y && gy >= 0) {
+      if ((check = this.get_cell_at(gx, gy)) != null) {
+        // If cell already has a line, then it's perpendicular or a corner.
+        // Skip perpendiculars. Corner means the line can't go past it, just
+        // return.
         if (check.is_corner()) {
           return pts;
         }
@@ -195,6 +234,8 @@ class Line {
 
     return pts;
   }
+
+  // Get the newest living cell on the knot.
 
   void draw() {
     int travel=0;
@@ -241,45 +282,18 @@ class Line {
 
     visited.clear();
   }
-}
-
-class World {
-  HashMap cells;
-  int h, w, step;
-
-  // world w and h are in grid steps, step is pixels.
-  World(int _w, int _h, int _step) {
-    step = _step;
-    w = _w; h = _h;
-
-    // empty gridworld
-    cells = new HashMap(w * h);
-  }
 
   Cell place_cell_at(int gx, int gy) {
-    Cell c = new Cell(gx, gy, step);
-    cells.put(c.id, c);
+    Cell c = new Cell(gx, gy, STEP);
+    // cells.put(c.id, c);
+    cell_grid[gx][gy] = c;
     return c;
   }
 
   Cell get_cell_at(int gx, int gy) {
-    return (Cell)cells.get(cell_id(gx, gy));
+    // return (Cell)cells.get(cell_id(gx, gy));
+    return cell_grid[gx][gy];
   }
-
-  // return pixel location of cell at grid step
-  int[] cell_at(int gx, int gy) {
-    return new int[] {gx * step, gy * step};
-  }
-
-  String cell_id(int x, int y) {
-    int[] point = cell_at(x, y);
-    int _x = point[0],
-        _y = point[1];
-
-    return  _x + "," + _y;
-  }
-
-  void clear() { cells.clear(); }
 }
 
 // cell drawing types
@@ -296,7 +310,8 @@ final int NW = N | W, NE = N | E, SW = S | W, SE = S | E,
           NSEW = N | S | E | W, EW = E | W, NS = N | S;
 
 class Cell {
-  int x, y, midx, midy, grid_x, grid_y,
+  int x, y, midx, midy,
+      grid_x, grid_y,
       step, hstep, over;
 
   // line widths
@@ -308,18 +323,19 @@ class Cell {
   color c_border, c_line,
         c_border2, c_line2;
 
-  boolean use_color_2, dirty;
+  boolean use_color_2, dirty, alive;
 
   String id;
   int dir, first_pass;
 
-  World myworld;
+  Cell previous;
 
   // set default line type
   Cell(int _x, int _y, int _s) {
     over = NEITHER;
     use_color_2 = false;
     dirty = true; // has cell changed?
+    alive = true;
 
     // line_type = EW_NS;
     dir = 0;
@@ -377,11 +393,13 @@ class Cell {
     midy = y + hstep;
   }
 
-  void setColor(color c) { setLineColor(c);   /* setBorderColor(c);  /* */ }
-  void setColor2(color c) { setLineColor2(c); /* setBorderColor2(c); /* */ }
+  void setPrevious(Cell c) { previous = c; }
 
-  void setLineColor(color c) { c_line = c; }
-  void setLineColor2(color c) { c_line2 = c; }
+  void setColor(color c) { setKnotColor(c);   /* setBorderColor(c);  /* */ }
+  void setColor2(color c) { setKnotColor2(c); /* setBorderColor2(c); /* */ }
+
+  void setKnotColor(color c) { c_line = c; }
+  void setKnotColor2(color c) { c_line2 = c; }
   void setBorderColor(color c) { c_border = c; }
   void setBorderColor2(color c) { c_border2 = c; }
 
@@ -511,9 +529,9 @@ class Cell {
   int exits() {
     int total = 0;
     if (northy()) total++;
-    if (northy()) total++;
-    if (northy()) total++;
-    if (northy()) total++;
+    if (southy()) total++;
+    if (easty()) total++;
+    if (westy()) total++;
     return total;
   }
 
@@ -523,16 +541,10 @@ class Cell {
   }
 }
 
-World world;
-Line  knot;
+Knot knot;
 boolean living, automatic = true;
 
-// Random knotting patterns
-final int[] pattern_a = {NORTH, EAST, SOUTH, WEST};
-final int[] pattern_b = {NORTH, EAST, NORTH, EAST, SOUTH, WEST, SOUTH, WEST};
-final int[] pattern_c = {NORTH, EAST, SOUTH, WEST, SOUTH, EAST, NORTH, WEST};
-
-int[] steps = pattern_c;
+final int[] steps = {NORTH, EAST, SOUTH, WEST};
 
 void setup() {
   colorMode(HSB, 255);
@@ -541,7 +553,7 @@ void setup() {
     size(STEP * STEPS_X, STEP * STEPS_Y, PDF, "knot.pdf");
     noLoop();
   } else {
-    size(STEP * STEPS_X, STEP * STEPS_Y);
+    size(STEP * STEPS_X, STEP * STEPS_Y, P2D);
   }
 
   strokeCap(SQUARE);
@@ -554,21 +566,29 @@ void setup() {
   cell_height = STEPS_Y;
 
   // initialize world
-  world = new World(cell_width, cell_height, STEP);
-  knot  = new Line(world);
+  knot  = new Knot();
   living = true;
 
   // frameRate(40);
   // frameRate(3);
-  background(0);
+  background(255);
 }
 
-void draw() {
+boolean resetScreen = false;
 
-  while (living && automatic) {
+void draw() {
+  if (resetScreen) {
+    background(255);
+  // fill(0, 145);
+  // noStroke();
+  // rect(0, 0, width, height);
+    resetScreen = false;
+  }
+
+  // while (living && automatic) {
     living = make_a_knot();
     // if (!PDF_MODE) break; // only one loop if we're not preparing a pdf
-  }
+  // }
 
   knot.draw();
 
@@ -584,12 +604,9 @@ void draw() {
 void keyPressed() {
   switch(key) {
     case ' ':
-      world.clear();
       knot.clear();
       living = true;
-      fill(0, 145);
-      noStroke();
-      rect(0, 0, width, height);
+      resetScreen = true;
       loop();
       break;
     case 'a':
@@ -611,41 +628,62 @@ void mouseClicked() {
   knot.add(gx, gy);
 }
 
-// RANDOM KNOTTING
-int current_step=0;
-
+// take next step or die
 boolean make_a_knot() {
-  int nx, ny, cur_dir = steps[current_step];
   Cell last_cell = knot.last();
-
   if (last_cell == null) {
-    // start in the center
-    knot.add(STEPS_X / 2, STEPS_Y / 2);
+    knot.add(STEPS_X / 2, 0);
   } else  {
-    int tries = 0;
-    boolean possible = false;
-    ArrayList possibles = knot.possible_moves(cur_dir);
-    while (possibles.size() == 0 && tries < steps.length) {
-      current_step = (current_step + 1) % steps.length;
-      cur_dir = steps[current_step];
-      tries++;
-      possibles = knot.possible_moves(cur_dir);
-    }
-    if (possibles.size() > 0) {
-      int[] point = (int[]) possibles.get( int(random(possibles.size() / 2)) );
-      knot.add(point[0], point[1]);
-    } else {
-      return false;
-    }
+    // return false if we can't take a step
+    if (!step(last_cell)) return false;
   }
-
-  current_step = (current_step + 1) % steps.length;
   return true;
+}
+
+void print_steps () {
+  for (int i=0; i<steps.length; i++) println(steps[i]);
+}
+
+void shuffle_steps() {
+  int j, t;
+
+  for (int i = steps.length - 1; i >= 0; i--) {
+    j = int(random(i));
+    t = steps[i];
+    steps[i] = steps[j];
+    steps[j] = t;
+  }
+}
+
+boolean step(Cell last_cell) {
+  shuffle_steps();
+
+  int nx, ny,
+      current_step = (int)random(steps.length),
+      cur_dir = steps[current_step];
+  int tries = 0;
+  boolean possible = false;
+  ArrayList possibles = knot.possible_moves(cur_dir);
+  while (possibles.size() == 0 && tries < steps.length) {
+    current_step = (current_step + 1) % steps.length;
+    cur_dir = steps[current_step];
+    tries++;
+    possibles = knot.possible_moves(cur_dir);
+  }
+  if (possibles.size() > 0) {
+    // choose one of the possibles
+    int[] point = (int[]) possibles.get( int(random(possibles.size() / 3)) );
+    knot.add(point[0], point[1]);
+    return true;
+  } else {
+    return false;
+  }
 }
 
 // totally awesome color cycling
 int nc=0;
 color next_color() {
+  
   nc = (nc + 1) % 255;
   // return color(nc, 255, 200); // color cycle
   return color(255); // just white

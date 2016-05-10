@@ -1,17 +1,20 @@
-int WIDTH = 513;
-int RULESET = 122;
+int WIDTH = 1600;
+int HEIGHT = 600;
+int RULESET = 105; // 0 - 255
+boolean FADE = false;
+int STEP = 2;
+boolean PIC = true;
 
 ////////// 1 dimensional cellular automata
 
 int row[], next_row[];
 int y;
 int TRUTH = 1;
-color black = color(0);
-color white = color(255);
+color dead_color = color(0, 0, 0);
+color live_color = color(45, 45, 45);
 
 void setup() {
-  size(WIDTH, WIDTH);
-  colorMode(HSB, 255);
+  size(WIDTH, HEIGHT);
   noStroke();
 
   row = new int[width];
@@ -30,11 +33,9 @@ void randomize_row() {
   }
 }
 
-
 int get_int_from_bits(int a, int b, int c) {
   return (a * 4) + (b * 2) + c;
 }
-
 
 int apply_ruleset(int[] r, int i) {
   int a, b, c;
@@ -66,6 +67,36 @@ int apply_ruleset(int[] r, int i) {
   return result >= 1 ? 1 : 0;
 }
 
+int co=50;
+int dc=2;
+
+void advance_color() {
+  co += dc;
+  
+  if (co >= 255 || co <= 50) {
+    if (co > 255) co = 255;
+    else if (co < 50) co = 50;
+    
+    dc = -dc;
+  }
+  
+  live_color = color(co, co % 180, co % 253);
+}
+
+color choose_fill(boolean is_alive, int x, int y) {
+  color argb = is_alive ? live_color : dead_color;
+  
+  if (is_alive) {
+    int r = (argb >> 16) & 0xFF;  // Faster way of getting red(argb)
+    int g = (argb >> 8) & 0xFF;   // Faster way of getting green(argb)
+    int b = argb & 0xFF;          // Faster way of getting blue(argb)
+  
+    return color((r + x) % 255, (g + y) % 255, b);
+  } else {
+    return argb;
+  }
+}
+
 void draw() {
   // loop to draw and evaluate
 
@@ -73,8 +104,16 @@ void draw() {
   
   for (int x=0; x < WIDTH; x++) {
     // draw each pixel on one line
-    set(x, y, row[x] == 1 ? white : black);
+    fill(choose_fill(row[x] == 1, x, y), FADE ? 50 : 255);
+    
+    rect(x * STEP, y, STEP, STEP);
+    
+    if (x * STEP > width) break;
+    
+    // set(x, y, row[x] == 1 ? live_color : dead_color);
   }
+
+  advance_color();
   
   /// UPDATE
  
@@ -89,9 +128,11 @@ void draw() {
   }
 
   // step down
-  y = (y + 1);
+  y = (y + STEP);
   
-  if (y == height) {
+  if (y >= height) {
+    noLoop();
+    if (PIC) saveFrame("background-" + nf(RULESET, 3) + ".png");
     randomize_row();
     y = 0;
   }

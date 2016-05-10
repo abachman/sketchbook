@@ -148,7 +148,7 @@ var load_rulesets = function (rules) {
     axiom: 'A',
     angle: 60,
     generations: 8,
-    length: 2,
+    length: 16,
     start: {x: 0.25, y: 0.75, r: Math.PI * 1.5},
 
     evolve: {
@@ -336,7 +336,7 @@ var load_rulesets = function (rules) {
     color: 'rgb(241, 237, 169)',
     axiom: 'FX',
     angle: 90,
-    generations: 5,
+    generations: 6,
     length: 3,
     start: {x: 0.5, y: 0.5},
     evolve: {
@@ -357,6 +357,45 @@ var load_rulesets = function (rules) {
           break;
       }
     }
+  }
+
+  rules.FRACTAL_PLANT = {
+    title: 'FRACTAL PLANT',
+    color: 'rgb(255, 144, 255)',
+    axiom: 'X',
+    angle: 25,
+    generations: 6,
+    length: 4,
+    start: {x: 0.5, y: 1, r: Math.PI},
+    evolve: {
+      'X': 'F-[[X]+X]+F[+FX]-X',
+      'F': 'FF'
+    },
+    render: function (pen, chr) {
+      switch(chr) {
+        case 'F':
+          pen.drawForward();
+          break;
+        case '-':
+          pen.turnLeft();
+          break;
+        case '+':
+          pen.turnRight();
+          break;
+        case '[':
+          pen.pushState();
+          break;
+        case ']':
+          pen.popState();
+          break;
+      }
+    }
+    // variables : X F
+    // constants : + − [ ]
+    // start  : X
+    // rules  : (X → F-[[X]+X]+F[+FX]-X), (F → FF)
+    // angle  : 25°
+
   }
 }
 

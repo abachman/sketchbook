@@ -131,6 +131,8 @@ void init(rules) {
   }
   instr = 0;
 
+  console.log('letters:', s.length);
+
   setStrokeToRuleset();
 
   // show resulting string

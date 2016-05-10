@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.LinkedList;
 
 // int DOTCOL = 255;
 int MAXDOTS = 1000;
@@ -30,7 +31,7 @@ void setup() {
   }
  
   PFont font;
-  font = loadFont("comic.vlw"); 
+  font = loadFont("Monaco-28.vlw"); 
   
   textFont(font, 40); 
   bboxh = height * bbox_ratio;
