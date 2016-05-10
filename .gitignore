@@ -7,3 +7,5 @@ flixel/
 of/
 pd/
 sketch_*/
+.DS_store
+.build/
