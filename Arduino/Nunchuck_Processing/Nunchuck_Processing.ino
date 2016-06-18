@@ -19,12 +19,6 @@ ArduinoNunchuk nunchuk = ArduinoNunchuk();
 const int ledPinA = 13;
 
 //// Average based input filter.
-#define NUM_READINGS 10
-#define NUM_FIELDS 3
-int readings[NUM_FIELDS][NUM_READINGS];
-int index = 0;          // the index of the current reading
-int totals[NUM_FIELDS]; // the running totals
-int averages[NUM_FIELDS]; // the average value
 ////
 
 /// low-pass input filter.
@@ -53,33 +47,22 @@ int averages[NUM_FIELDS]; // the average value
 void setup() {
   Serial.begin(BAUDRATE);
 
-  nunchuk.init();
+  nunchuk.init(true, true);
   pinMode(ledPinA, OUTPUT);
-
-  // initialize all readings to 0
-  for (int thisField = 0; thisField < NUM_FIELDS; thisField++) {
-    for (int thisReading = 0; thisReading < NUM_READINGS; thisReading++) {
-      readings[thisField][thisReading] = 0;
-    }
-  }
 }
 
 void loop() {
   nunchuk.update();
-  calculateAverages(nunchuk);
 
   Serial.print(nunchuk.analogX, DEC);
   Serial.print(' ');
   Serial.print(nunchuk.analogY, DEC);
   Serial.print(' ');
-  // Serial.print(nunchuk.accelX, DEC);
-  Serial.print(averages[0], DEC);
+  Serial.print(nunchuk.accelX, DEC);
   Serial.print(' ');
-  // Serial.print(nunchuk.accelY, DEC);
-  Serial.print(averages[1], DEC);
+  Serial.print(nunchuk.accelY, DEC);
   Serial.print(' ');
-  // Serial.print(nunchuk.accelZ, DEC);
-  Serial.print(averages[2], DEC);
+  Serial.print(nunchuk.accelZ, DEC);
   Serial.print(' ');
   Serial.print(nunchuk.zButton, DEC);
   Serial.print(' ');
@@ -96,40 +79,6 @@ void loop() {
   // if (nunchuk.cButton == 1) {
   //   digitalWrite(ledPinA, HIGH);
   // }
-}
-
-// calculate a moving average for the accelerometers
-void calculateAverages(ArduinoNunchuk nunchuk) {
-  int reading;
-
-  for (int thisField = 0; thisField < NUM_FIELDS; thisField++) {
-    // remove previous value in current index from running total
-    totals[thisField] = totals[thisField] - readings[thisField][index];
-
-    switch(thisField) {
-    case 0:
-      reading = nunchuk.accelX;
-      break;
-    case 1:
-      reading = nunchuk.accelY;
-      break;
-    case 2:
-      reading = nunchuk.accelZ;
-      break;
-    }
-    readings[thisField][index] = reading;
-
-    totals[thisField] = totals[thisField] + readings[thisField][index];
-
-    // calculate the average:
-    averages[thisField] = totals[thisField] / NUM_READINGS;
-  }
-
-  // if we're at the end of the array...
-  if (index >= NUM_READINGS) {
-    // ...wrap around to the beginning:
-    index = 0;
-  }
 }
 
 double lowPassFilter(int prev, int next) {
