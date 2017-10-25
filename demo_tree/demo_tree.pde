@@ -11,7 +11,7 @@
 float theta;   
 
 void setup() {
-  size(640, 360, P2D);
+  size(900, 750, P2D);
   smooth();
 }
 
@@ -30,7 +30,7 @@ void draw() {
   // Move to the end of that line
   translate(0,-120);
   // Start the recursive branching!
-  branch(120);
+  branch(240);
 
 }
 
@@ -55,7 +55,20 @@ void branch(float h) {
     translate(0, -h);
     branch(h);
     popMatrix();
+  } else {
+    noStroke();
+    fill(0, 255, 0);
+    pushMatrix();
+      rotate(theta);
+      translate(0, -h);
+      ellipse(0, 0, 4, 4);
+    popMatrix();
+    pushMatrix();
+      rotate(-theta);
+      translate(0, -h);
+      ellipse(0, 0, 4, 4);
+    popMatrix();
+    
+    stroke(255);
   }
 }
-
-

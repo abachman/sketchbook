@@ -1,5 +1,25 @@
-//import oscP5.*;
-//import netP5.*;
+import processing.core.*; 
+import processing.data.*; 
+import processing.event.*; 
+import processing.opengl.*; 
+
+import oscP5.*; 
+import netP5.*; 
+import processing.video.*; 
+
+import java.util.HashMap; 
+import java.util.ArrayList; 
+import java.io.File; 
+import java.io.BufferedReader; 
+import java.io.PrintWriter; 
+import java.io.InputStream; 
+import java.io.OutputStream; 
+import java.io.IOException; 
+
+public class portraits extends PApplet {
+
+
+
 
 /**
  * Getting Started with Capture.
@@ -7,7 +27,8 @@
  * Reading and displaying an image from an attached Capture device.
  */
 
-import processing.video.*;
+
+
 
 Capture cam;
 boolean spaced, reverse;
@@ -17,26 +38,24 @@ PImage[] film;
 int idx;
 int pidx;
 
-/* OscP5 oscP5;
+OscP5 oscP5;
 NetAddress myRemoteLocation;
-OscP5 oscLogClient; */
+OscP5 oscLogClient;
 
-void log_message(String message) {
-  /*
+public void log_message(String message) {
   OscMessage logOut = new OscMessage("/log");
   logOut.add(message);
-  oscLogClient.send(logOut); */
+  oscLogClient.send(logOut);
   println(message);
 }
 
-void setup() {
+public void setup() {
   spaced = false;
   reverse = true;
   noStroke();
   size(640, 360);
   film = new PImage[FLEN];
 
-/*
   oscP5 = new OscP5(this, 53000);
 
   oscLogClient = new OscP5(this, "localhost", 5300);
@@ -47,7 +66,7 @@ void setup() {
   oscP5.plug(this,"triggerFlip","/flip");
   oscP5.plug(this,"triggerToggle","/toggle");
   oscP5.plug(this,"triggerFrame","/frame");
-*/
+
   idx = 0;
   pidx = 0;
   frameRate(16);
@@ -63,7 +82,7 @@ void setup() {
   // from the array returned by list():
   // cam = new Capture(this, cameras[0]);
   // Or, the settings can be defined based on the text in the list
-  cam = new Capture(this, 640, 360, "FaceTime HD Camera", 30);
+  cam = new Capture(this, 640, 360, "FaceTime HD Camera (Built-in)", 30);
 
   // Start capturing the images from the camera
   cam.start();
@@ -97,7 +116,7 @@ public void triggerFrame(int f) {
 
 PImage frame;
 
-void draw() {
+public void draw() {
   background(0);
 
   frame = film[119 - pidx];
@@ -122,14 +141,23 @@ void draw() {
   }
 }
 
-void keyPressed() {
+public void keyPressed() {
   if (keyCode == ENTER || keyCode == RETURN) {
     spaced = true;
   }
 }
 
-void keyReleased() {
+public void keyReleased() {
   if (keyCode == ENTER || keyCode == RETURN) {
     spaced = false;
+  }
+}
+  static public void main(String[] passedArgs) {
+    String[] appletArgs = new String[] { "portraits" };
+    if (passedArgs != null) {
+      PApplet.main(concat(appletArgs, passedArgs));
+    } else {
+      PApplet.main(appletArgs);
+    }
   }
 }

@@ -1,9 +1,9 @@
 import ddf.minim.*;
 import ddf.minim.analysis.*;
-import ddf.minim.effects.*;
+/* import ddf.minim.effects.*;
 import ddf.minim.signals.*;
 import ddf.minim.spi.*;
-import ddf.minim.ugens.*;
+import ddf.minim.ugens.*; */
 
 PImage b;
 float w,h,c, hw, hh;
@@ -11,9 +11,9 @@ float w,h,c, hw, hh;
 Minim minim;
 AudioInput in;
 
-
+  
 void setup() {
-  size(1024, 768, OPENGL); 
+  size(640, 480, OPENGL); 
   noStroke();
   b=loadImage("f4.jpg");
   w=width;
@@ -27,27 +27,48 @@ void setup() {
   // use the getLineIn method of the Minim object to get an AudioInput
   in = minim.getLineIn(Minim.MONO);
 }
+
+// cube
 boolean spaceOn = false;
+float xd = 0, yd = 0, xr = 0.009, yr = 0.03;
+
+// bars
+int step = 16;
+int boost = 700;
+float t;
+
+// sampling levels
+int samps;
+float samp, sum, avg;
+
 void draw() {
   lights();
-  background(0);
-  stroke(255);
+  // background(0);
+  fill(0, 20);
+  rect(0, 0, w, h);
+  fill(255);
   
-  println(in.bufferSize());
+  samps = 0;
+  sum = 0;
   
-  int yo = 50;
-  
-  int step = 10;
+  fill(0, 220, 0);
   
   // draw the waveforms so we can see what we are monitoring
   for(int i = 0; i < in.bufferSize() - step; i += step) {
-    println(i, in.left.get(i));
-    line( i, yo + in.left.get(i) * 100, i+1, yo + in.left.get(i + step)*50 );
-    // line( i, 150 + in.right.get(i)*50, i+1, 150 + in.right.get(i+1)*50 );
-  }
-  
-  return; 
+    samp = abs(in.left.get(i));
+    t = samp * boost;
 
+    sum += samp;
+    samps++;
+
+
+    // pick random
+    // fill(b.get(int(random(640)), int(random(480))));
+    rect(i, hh, step, t);     
+  }  
+  
+  avg = sum / samps;
+  
   /*
   pushMatrix();
   rotate(-0.25*PI); 
@@ -57,20 +78,37 @@ void draw() {
     rect(x,-20,c,h*1.5);
   } 
   popMatrix();
+  */  
+  
+  xd += xr; // .23;
+  yd += yr; // .17;
+  
+  /* 
+  if (random(1.0) > 0.8) {
+    xr = random(0.1, 0.5);
+  } else if (random(1.0) > 0.8) {
+    yr = random(0.1, 0.5);
+  } else if (random(1.0) > 0.8) {
+    xr = -xr;
+  } else if (random(1.0) > 0.8) {
+    yr = -yr;
+  }
+  */
   
   fill(100,200,200);
   pushMatrix();
-    translate(hw, hh, 100);
-    rotateX(map(mouseX, 0, width, 0, 2*PI));
-    rotateY(map(mouseY, 0, height, 0, 2*PI));  
+    translate(hw, 20 + hh / 2, 100);
+    rotateX(noise(xd) * PI);
+    rotateY(noise(yd) * PI);
     // translate(100, 100, 0);
-    if (spaceOn) { 
+    box(map(avg, 0, 1.0, 20, 300));
+    /* if (spaceOn) { 
       box(random(200) + 50);
     } else {
       box(100);
-    }
-    popMatrix();
-    */
+    } */
+  popMatrix();
+
 }
 
 void keyPressed() {

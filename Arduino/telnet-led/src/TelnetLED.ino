@@ -1,7 +1,6 @@
 #include <WiFi101.h>
-// #include <WiFiClient.h>
+#include <WiFiClient.h>
 #include <WiFiServer.h>
-
 // #include <WiFiMDNSResponder.h>
 // #include <WiFiSSLClient.h>
 // #include <WiFiUdp.h>
@@ -14,9 +13,10 @@ char pass[] = "the bachman family";
 // WiFi connection status
 int status = WL_IDLE_STATUS;
 
-// start server on PORT
+// start server on the default telnet port
 int port = 23;
 WiFiServer server(port);
+
 
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
@@ -25,32 +25,37 @@ WiFiServer server(port);
 
 #define NEO_DATA_PIN 6
 
+// Parameter 1 = number of pixels in strip
+// Parameter 2 = Arduino pin number (most are valid)
+// Parameter 3 = pixel type flags, add together as needed:
+//   NEO_KHZ800  800 KHz bitstream (most NeoPixel products w/WS2812 LEDs)
+//   NEO_KHZ400  400 KHz (classic 'v1' (not v2) FLORA pixels, WS2811 drivers)
+//   NEO_GRB     Pixels are wired for GRB bitstream (most NeoPixel products)
+//   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
+//   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(7, NEO_DATA_PIN, NEO_GRB + NEO_KHZ800);
+
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-  // initialize digital pin 6 as an output, since it controls the
-  // onboard LED on the MKR1000
+  // initialize digital pin 6 as an output, since it controls the onboard LED on the MKR1000
   Serial.begin(9600);
 
   // attempt to connect to Wifi network:
-  // while ( status != WL_CONNECTED) {
-  Serial.print("Attempting to connect to SSID: ");
-  Serial.println(ssid);
+  while ( status != WL_CONNECTED) {
+    Serial.print("Attempting to connect to SSID: ");
+    Serial.println(ssid);
 
-  delay(100);
+    delay(1000);
 
-  // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-  status = WiFi.begin(ssid, pass);
+    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+    status = WiFi.begin(ssid, pass);
 
     // wait 10 seconds for connection:
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.print('.');
+    delay(5000);
   }
-  Serial.println();
 
-  Serial.print("Connected! IP Address: ");
+  Serial.print("IP Address: ");
   print_ip(WiFi.localIP());
 
   // start the server:
@@ -62,31 +67,28 @@ void setup() {
   strip.show(); // Initially, all pixels are 'off'
 }
 
-#define IP_BYTE_0(x)  ip & 0xFF
-#define IP_BYTE_1(x)  (ip >> 8) & 0xFF
-#define IP_BYTE_2(x)  (ip >> 16) & 0xFF
-#define IP_BYTE_3(x)  (ip >> 24) & 0xFF
-
-void print_ip(IPAddress ip) {
-  Serial.print(IP_BYTE_0(ip));
+void print_ip(IPAddress ip)
+{
+  unsigned char bytes[4];
+  bytes[0] = ip & 0xFF;
+  bytes[1] = (ip >> 8) & 0xFF;
+  bytes[2] = (ip >> 16) & 0xFF;
+  bytes[3] = (ip >> 24) & 0xFF;
+  Serial.print(bytes[0]);
   Serial.print('.');
-  Serial.print(IP_BYTE_1(ip));
+  Serial.print(bytes[1]);
   Serial.print('.');
-  Serial.print(IP_BYTE_2(ip));
+  Serial.print(bytes[2]);
   Serial.print('.');
-  Serial.print(IP_BYTE_3(ip));
-  Serial.print('\n');
+  Serial.println(bytes[3]);
 }
 
+// track whether or not the client was connected previously
+boolean alreadyConnected = false;
+
+uint32_t magenta = strip.Color(255, 0, 255);
+uint32_t nocolor = strip.Color(0, 0, 0);
 int i;
-
-void setColor(int r, int g, int b) {
-  // turn NP on
-  for(i=0; i<strip.numPixels(); i++) {
-    strip.setPixelColor(i, strip.Color(r, g, b));
-  }
-  strip.show();
-}
 
 // the loop function runs over and over again forever
 void loop() {
@@ -95,35 +97,11 @@ void loop() {
 
   // when the client sends the first byte, say hello:
   if (client) {
-    Serial.println("new client");
-    char col[3];
-    int  idx = 0;
-    while (client.connected()) {
-      if (client.available()) {
-        char c = client.read();
-        // Serial.write(c);
-        if (c == '\n' || idx > 2) {
-          // ignore / reset
-          client.stop();
-
-          Serial.print(F("received '"));
-          char hex_color[7];
-          sprintf(hex_color, "%02X%02X%02X", col[0], col[1], col[2]);
-          Serial.print(hex_color);
-          setColor(col[0], col[1], col[2]);
-          Serial.println("' closing");
-        } else {
-          col[idx] = c;
-          idx++;
-        }
-      }
+    // turn NP on
+    for(i=0; i<strip.numPixels(); i++) {
+      strip.setPixelColor(i, magenta);
     }
-
-    Serial.println("wait for client");
-  }
-
-  /*
-
+    strip.show();
 
     if (!alreadyConnected) {
       // clead out the input buffer:
@@ -153,5 +131,4 @@ void loop() {
     strip.show();
     delay(200);
   }
-  */
 }

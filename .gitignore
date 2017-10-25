@@ -9,3 +9,16 @@ pd/
 sketch_*/
 .DS_store
 .build/
+*.zip
+*/upload
+*.class
+*.sb
+**/application.macosx/
+*.jar
+
+# other's stuff
+Empathy/
+GettingStartedCapture/
+OSC_Data_Monitor/
+Processing/examples/
+voronoi_sample/

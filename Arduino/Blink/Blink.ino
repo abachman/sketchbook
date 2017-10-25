@@ -9,15 +9,15 @@
 // Pin 13 has an LED connected on most Arduino boards.
 // give it a name:
 int pin13 = 13;
-int pin12 = 12;
-int pin11 = 11;
+//int pin12 = 12;
+//int pin11 = 11;
 
 // the setup routine runs once when you press reset:
 void setup() {                
   // initialize the digital pin as an output.
   pinMode(pin13, OUTPUT);
-  pinMode(pin12, OUTPUT);
-  pinMode(pin11, OUTPUT);
+  //pinMode(pin12, OUTPUT);
+  //pinMode(pin11, OUTPUT);
 }
 
 int delayTime = 1;
