@@ -1,18 +1,13 @@
 //import oscP5.*;
 //import netP5.*;
 
-/**
- * Getting Started with Capture.
- *
- * Reading and displaying an image from an attached Capture device.
- */
-
 import processing.video.*;
 
 Capture cam;
 boolean spaced, reverse;
 static int FLEN = 120;
 PImage[] film;
+
 
 int idx;
 int pidx;
@@ -30,10 +25,13 @@ void log_message(String message) {
 }
 
 void setup() {
+  size(640, 360);
+  pixelDensity(1);
+
   spaced = false;
   reverse = true;
   noStroke();
-  size(640, 360);
+
   film = new PImage[FLEN];
 
 /*
@@ -97,18 +95,41 @@ public void triggerFrame(int f) {
 
 PImage frame;
 
+int c = 0, fr = 63, ne = 81;
+float rr = 1.0;
+
 void draw() {
   background(0);
 
-  frame = film[119 - pidx];
-  if (frame != null) {
-    image(frame, 0, 0, width, height);
+  if (jitter) {
+    frame = film[(int)random(120)];
+  } else {
+    frame = film[119 - pidx];
   }
+  if (frame != null) {
+    c++;
+    image(frame, 0, 0, width, height);
+    
+    if (c % fr == 0) {
+      filter(GRAY);
+    }
+    
+    if (c % ne == 0) {
+      filter(INVERT);
+    }
+  }
+  
   pidx = (pidx + 1) % FLEN;
+  if (pidx == 0) {
+    fr = (int)random(60) + 1;
+    ne = (int)random(60) + 1;
+    rr = random(1.0);
+    log_message("fr = " + fr + "; ne = " + ne + "; rr = " + rr);
+  }
 
   if (spaced) {
     if (cam.available() == true) {
-      log_message("Capture frame " + idx);
+      //log_message("Capture frame " + idx);
       cam.read();
       PImage newFrame = cam.get();
       film[idx] = newFrame;
@@ -122,14 +143,25 @@ void draw() {
   }
 }
 
+boolean jitter = false;
+
+HashMap<String, Boolean> keys = new HashMap();
+
 void keyPressed() {
   if (keyCode == ENTER || keyCode == RETURN) {
     spaced = true;
+  } else if (key == ' ') {
+    jitter = true;
+  } else if (key >= '1' && key <= '9') {
+    log_message("char " + Character.getNumericValue(key));
+    pidx = Character.getNumericValue(key) * 11;
   }
 }
 
 void keyReleased() {
   if (keyCode == ENTER || keyCode == RETURN) {
     spaced = false;
+  } else if (key == ' ') {
+    jitter = false;
   }
 }
